@@ -7,10 +7,6 @@ import {
   Row,
   Col,
   Input,
-  Modal,
-  ModalHeader,
-  ModalBody,
-  ModalFooter,
   Badge,
 } from "reactstrap";
 import {
@@ -24,7 +20,7 @@ import {
 } from "react-table";
 import PropTypes from "prop-types";
 import Breadcrumbs from "../../components/Common/Breadcrumb";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom"; // ✅ ADDED useSearchParams
 import { toast } from "react-toastify";
 import { Plus, Search, Pencil, Trash } from "lucide-react";
 import {
@@ -32,9 +28,6 @@ import {
   deleteCelebraty,
   updateCelebratyStatus,
 } from "../../api/celebratyApi";
-import PrivilegeAccess from "../../components/protection/PrivilegeAccess";
-import { RESOURCES, OPERATIONS } from "../../constant/privilegeConstants";
-import { usePrivilegeStore } from "../../config/store/privilegeStore";
 import DeleteConfirmModal from "../../components/Modals/DeleteModal";
 
 // ========================================
@@ -53,7 +46,7 @@ function GlobalFilter({
   }, 200);
 
   return (
-    <Col md={4}>
+    <Col md={3}>
       <div style={{ position: "relative" }}>
         <Input
           type="text"
@@ -99,6 +92,8 @@ const TableContainer = ({
   customPageSize,
   className,
   isGlobalFilter,
+  onFilterChange,
+  filters,
 }) => {
   const {
     getTableProps,
@@ -138,8 +133,8 @@ const TableContainer = ({
 
   return (
     <Fragment>
-      {/* HEADER ROW - Page Size, Search, Add Button */}
-      <Row className="mb-3">
+      {/* HEADER ROW - Page Size, Search, Filters, Add Button */}
+      <Row className="mb-3 align-items-center">
         <Col md={2}>
           <select
             className="form-select"
@@ -167,27 +162,59 @@ const TableContainer = ({
           />
         )}
 
-        <Col md={6}>
-          <PrivilegeAccess
-            resource={RESOURCES.CELEBRITY}
-            action={OPERATIONS.ADD}
+        {/* ✅ MODERATION STATE FILTER */}
+        <Col md={2}>
+          <select
+            className="form-select"
+            value={filters.moderationState}
+            onChange={(e) => onFilterChange('moderationState', e.target.value)}
+            style={{
+              borderRadius: "8px",
+              border: "1px solid #e0e0e0",
+              padding: "10px 16px",
+            }}
           >
-            <div className="d-flex justify-content-end">
-              <Link
-                to="/dashboard/add-celebrity"
-                className="theme-btn bg-theme"
-                style={{
-                  textDecoration: "none",
-                  display: "inline-flex",
-                  alignItems: "center",
-                  gap: "8px",
-                }}
-              >
-                <Plus size={20} />
-                Add Celebrity
-              </Link>
-            </div>
-          </PrivilegeAccess>
+            <option value="">All States</option>
+            <option value="PENDING">Pending</option>
+            <option value="PUBLISHED">Published</option>
+            <option value="REJECTED">Rejected</option>
+          </select>
+        </Col>
+
+        {/* ✅ STATUS FILTER */}
+        <Col md={2}>
+          <select
+            className="form-select"
+            value={filters.status}
+            onChange={(e) => onFilterChange('status', e.target.value)}
+            style={{
+              borderRadius: "8px",
+              border: "1px solid #e0e0e0",
+              padding: "10px 16px",
+            }}
+          >
+            <option value="">All Status</option>
+            <option value="1">Active</option>
+            <option value="0">Inactive</option>
+          </select>
+        </Col>
+
+        <Col md={3}>
+          <div className="d-flex justify-content-end">
+            <Link
+              to="/dashboard/add-celebrity"
+              className="theme-btn bg-theme"
+              style={{
+                textDecoration: "none",
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "8px",
+              }}
+            >
+              <Plus size={20} />
+              Add Celebrity
+            </Link>
+          </div>
         </Col>
       </Row>
 
@@ -379,19 +406,28 @@ TableContainer.propTypes = {
   customPageSize: PropTypes.number,
   className: PropTypes.string,
   isGlobalFilter: PropTypes.bool,
+  onFilterChange: PropTypes.func,
+  filters: PropTypes.object,
 };
 
 // ========================================
 // MAIN CELEBRITY LIST COMPONENT
 // ========================================
 const CelebratyList = () => {
+  // ✅ USE URL SEARCH PARAMS
+  const [searchParams, setSearchParams] = useSearchParams();
+
   // ========== STATE ==========
   const [celebrities, setCelebrities] = useState([]);
   const [loading, setLoading] = useState(true);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [deleteId, setDeleteId] = useState(null);
 
-  const { hasPermission } = usePrivilegeStore();
+  // ✅ INITIALIZE FILTERS FROM URL
+  const [filters, setFilters] = useState({
+    moderationState: searchParams.get('moderationState') || '',
+    status: searchParams.get('status') || '',
+  });
 
   // ========== HELPER FUNCTIONS ==========
   const formatDate = (dateString) => {
@@ -404,11 +440,44 @@ const CelebratyList = () => {
     });
   };
 
+  // ✅ MODERATION BADGE WITH COLOR DOT (NO BACKGROUND)
+  const getModerationBadge = (state) => {
+    const badges = {
+      PENDING: { color: "#FFA500", text: "Pending" },
+      PUBLISHED: { color: "#28a745", text: "Published" },
+      REJECTED: { color: "#dc3545", text: "Rejected" },
+    };
+
+    const badge = badges[state] || badges.PENDING;
+
+    return (
+      <div style={{ 
+        display: "flex", 
+        alignItems: "center", 
+        gap: "8px",
+        fontSize: "14px",
+        fontWeight: "500",
+        color: "#333"
+      }}>
+        <span
+          style={{
+            width: "10px",
+            height: "10px",
+            borderRadius: "50%",
+            backgroundColor: badge.color,
+            display: "inline-block",
+          }}
+        />
+        {badge.text}
+      </div>
+    );
+  };
+
   // ========== API CALLS ==========
   const fetchCelebrities = async () => {
     try {
       setLoading(true);
-      const result = await getCelebraties();
+      const result = await getCelebraties(filters);
       const data = result.data || result.msg || result;
 
       if (Array.isArray(data)) {
@@ -423,6 +492,23 @@ const CelebratyList = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  // ✅ FILTER CHANGE HANDLER - UPDATES URL
+  const handleFilterChange = (filterName, value) => {
+    const newFilters = {
+      ...filters,
+      [filterName]: value,
+    };
+    
+    setFilters(newFilters);
+    
+    // ✅ UPDATE URL
+    const params = {};
+    if (newFilters.moderationState) params.moderationState = newFilters.moderationState;
+    if (newFilters.status) params.status = newFilters.status;
+    
+    setSearchParams(params);
   };
 
   const handleStatusChange = async (currentStatus, id) => {
@@ -482,12 +568,7 @@ const CelebratyList = () => {
   // ========== EFFECTS ==========
   useEffect(() => {
     fetchCelebrities();
-  }, []);
-
-  // ========== PERMISSIONS ==========
-  const canEdit = hasPermission(RESOURCES.CELEBRITY, OPERATIONS.EDIT);
-  const canDelete = hasPermission(RESOURCES.CELEBRITY, OPERATIONS.DELETE);
-  const hasAnyAction = canEdit || canDelete;
+  }, [filters]); // ✅ Re-fetch when filters change
 
   // ========== TABLE COLUMNS ==========
   const columns = [
@@ -505,6 +586,12 @@ const CelebratyList = () => {
       Header: "Celebrity Name",
       accessor: "name",
       Cell: ({ value }) => <strong style={{ fontWeight: "500" }}>{value}</strong>,
+    },
+    // ✅ MODERATION STATE WITH COLOR DOT
+    {
+      Header: "Moderation",
+      accessor: "moderationState",
+      Cell: ({ value }) => getModerationBadge(value),
     },
     {
       Header: "Sections",
@@ -597,11 +684,7 @@ const CelebratyList = () => {
         );
       },
     },
-  ];
-
-  // ========== OPTIONS COLUMN ==========
-  if (hasAnyAction) {
-    columns.push({
+    {
       Header: "Options",
       disableSortBy: true,
       Cell: ({ row }) => {
@@ -610,54 +693,50 @@ const CelebratyList = () => {
         return (
           <div className="d-flex gap-2">
             {/* Edit Button */}
-            <PrivilegeAccess resource={RESOURCES.CELEBRITY} action={OPERATIONS.EDIT}>
-              <Link
-                to={`/dashboard/update-celebrity/${celebrity._id}`}
-                className="theme-edit-btn"
-                style={{
-                  backgroundColor: "#4285F41F",
-                  color: "#1E90FF",
-                  border: "none",
-                  borderRadius: "6px",
-                  width: "40px",
-                  height: "40px",
-                  textDecoration: "none",
-                  display: "inline-flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                }}
-              >
-                <Pencil size={20} strokeWidth="2" />
-              </Link>
-            </PrivilegeAccess>
+            <Link
+              to={`/dashboard/update-celebrity/${celebrity._id}`}
+              className="theme-edit-btn"
+              style={{
+                backgroundColor: "#4285F41F",
+                color: "#1E90FF",
+                border: "none",
+                borderRadius: "6px",
+                width: "40px",
+                height: "40px",
+                textDecoration: "none",
+                display: "inline-flex",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              <Pencil size={20} strokeWidth="2" />
+            </Link>
 
             {/* Delete Button */}
-            <PrivilegeAccess resource={RESOURCES.CELEBRITY} action={OPERATIONS.DELETE}>
-              <button
-                onClick={() => handleDeleteClick(celebrity._id)}
-                className="theme-delete-btn"
-                style={{
-                  backgroundColor: "#FFE5E5",
-                  color: "#FF5555",
-                  border: "none",
-                  borderRadius: "6px",
-                  padding: "8px 12px",
-                  width: "40px",
-                  height: "40px",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  cursor: "pointer",
-                }}
-              >
-                <Trash size={20} color="#BA2526" />
-              </button>
-            </PrivilegeAccess>
+            <button
+              onClick={() => handleDeleteClick(celebrity._id)}
+              className="theme-delete-btn"
+              style={{
+                backgroundColor: "#FFE5E5",
+                color: "#FF5555",
+                border: "none",
+                borderRadius: "6px",
+                padding: "8px 12px",
+                width: "40px",
+                height: "40px",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                cursor: "pointer",
+              }}
+            >
+              <Trash size={20} color="#BA2526" />
+            </button>
           </div>
         );
       },
-    });
-  }
+    },
+  ];
 
   // ========== BREADCRUMB ==========
   const breadcrumbItems = [
@@ -687,6 +766,8 @@ const CelebratyList = () => {
                   data={celebrities}
                   customPageSize={10}
                   isGlobalFilter={true}
+                  onFilterChange={handleFilterChange}
+                  filters={filters}
                 />
               )}
             </CardBody>

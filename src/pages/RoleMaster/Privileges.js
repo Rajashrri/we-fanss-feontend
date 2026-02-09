@@ -12,8 +12,6 @@ import {
   Spinner,
 } from "reactstrap";
 
-import { RESOURCES, RESOURCE_MAPPING } from "../../constant/privilegeConstants";
-
 import {
   useTable,
   useGlobalFilter,
@@ -27,6 +25,24 @@ import Breadcrumbs from "../../components/Common/Breadcrumb";
 import { useParams } from "react-router-dom";
 import { toast } from "react-toastify";
 import { getPrivilegesByRoleId, setPrivileges } from "../../api/privilegeApi";
+
+// 🎯 Hardcoded Labels Mapping
+const PRIVILEGE_LABELS = {
+  'celebrity.basic': 'Celebrity Basic Info',
+  'celebrity.professionSection': 'Celebrity Profession Sections',
+  'celebrity.dynamicSection': 'Celebrity Dynamic Sections',
+  'celebrity.customSection': 'Celebrity Custom Sections',
+  'celebrity.timeline': 'Celebrity Timeline',
+  'celebrity.trivia': 'Celebrity Trivia',
+  'celebrity.relation': 'Celebrity Related Personalities',
+  'celebrity.reference': 'Celebrity References',
+  'language': 'Language',
+  'triviaType': 'Trivia Type',
+  'socialLink': 'Social Links',
+  'genre': 'Genre',
+  'sectionType': 'Section Type',
+  'sectionTemplate': 'Section Template',
+};
 
 // Global Search Component
 function GlobalFilter({ preGlobalFilteredRows, globalFilter, setGlobalFilter }) {
@@ -106,7 +122,7 @@ const TableContainer = ({
             value={pageSize}
             onChange={(e) => setPageSize(Number(e.target.value))}
           >
-            {[5, 10, 20].map((size) => (
+            {[10, 20, 50].map((size) => (
               <option key={size} value={size}>
                 Show {size}
               </option>
@@ -211,47 +227,44 @@ const Privileges = () => {
   const [masterChecked, setMasterChecked] = useState(false);
   const [roleInfo, setRoleInfo] = useState(null);
 
-  // Fetch privileges from backend
   const fetchPrivileges = async () => {
-    if (!id) return;
+  if (!id) return;
+  
+  setLoading(true);
+  try {
+    const response = await getPrivilegesByRoleId(id);
     
-    setLoading(true);
-    try {
-      const response = await getPrivilegesByRoleId(id);
-      
-      console.log("📥 Backend Response:", response);
+    console.log("📥 Backend Response:", response);
 
-      // ✅ Extract data from the standardized response structure
-      const { role, permissions = [], hasPermissions } = response.data || {};
-      
-      // Store role info
-      setRoleInfo(role);
+    // ✅ FIX: Extract privilege.permissions
+    const { role, privilege } = response.data || {};
+    const permissions = privilege?.permissions || [];
+    
+    setRoleInfo(role);
 
-      // ✅ Create table data directly from backend permissions (no ALL_RESOURCES loop)
-      const tableData = permissions.map((perm, index) => ({
-        id: index + 1,
-        resource: perm.resource,
-        resourceName: RESOURCE_MAPPING[perm.resource] || perm.resource, // fallback to resource name if not in mapping
-        add: perm.operations?.add === true,
-        edit: perm.operations?.edit === true,
-        delete: perm.operations?.delete === true,
-        publish: perm.resource === "celebrity" ? (perm.operations?.publish === true) : false,
-      }));
+    // ✅ Create table data with hardcoded labels - show ALL operations from backend
+    const tableData = permissions.map((perm, index) => ({
+      id: index + 1,
+      resource: perm.resource,
+      resourceName: PRIVILEGE_LABELS[perm.resource] || perm.resource,
+      view: perm.operations?.view === true,
+      add: perm.operations?.add === true,
+      edit: perm.operations?.edit === true,
+      delete: perm.operations?.delete === true,
+      publish: perm.operations?.publish === true,
+    }));
 
-      setPrivilegeData(tableData);
-      
-      console.log("✅ Privileges loaded successfully");
-    } catch (error) {
-      console.error("❌ Error fetching privileges:", error);
-      toast.error(error?.response?.data?.message || error.message || "Failed to load privileges");
-      
-      // ✅ Initialize with empty data on error
-      setPrivilegeData([]);
-    } finally {
-      setLoading(false);
-    }
-  };
-
+    setPrivilegeData(tableData);
+    
+    console.log("✅ Privileges loaded successfully");
+  } catch (error) {
+    console.error("❌ Error fetching privileges:", error);
+    toast.error(error?.response?.data?.message || error.message || "Failed to load privileges");
+    setPrivilegeData([]);
+  } finally {
+    setLoading(false);
+  }
+};
   // Toggle individual privilege
   const handleToggle = (id, field) => {
     setPrivilegeData(prevData =>
@@ -269,13 +282,17 @@ const Privileges = () => {
     setMasterChecked(newStatus);
 
     setPrivilegeData(prevData =>
-      prevData.map(item => ({
-        ...item,
-        add: newStatus,
-        edit: newStatus,
-        delete: newStatus,
-        publish: item.resource === "celebrity" ? newStatus : false,
-      }))
+      prevData.map(item => {
+        const hasPublish = item.resource.startsWith('celebrity.');
+        return {
+          ...item,
+          view: newStatus,
+          add: newStatus,
+          edit: newStatus,
+          delete: newStatus,
+          publish: hasPublish ? newStatus : item.publish,
+        };
+      })
     );
   };
 
@@ -284,14 +301,18 @@ const Privileges = () => {
     setPrivilegeData(prevData =>
       prevData.map(item => {
         if (item.id === id) {
-          const allActive = item.add && item.edit && item.delete && 
-                           (item.resource === "celebrity" ? item.publish : true);
+          const hasPublish = item.resource.startsWith('celebrity.');
+          const allActive = hasPublish 
+            ? (item.view && item.add && item.edit && item.delete && item.publish)
+            : (item.view && item.add && item.edit && item.delete);
+          
           return {
             ...item,
+            view: !allActive,
             add: !allActive,
             edit: !allActive,
             delete: !allActive,
-            publish: item.resource === "celebrity" ? !allActive : false,
+            publish: hasPublish ? !allActive : item.publish,
           };
         }
         return item;
@@ -299,31 +320,23 @@ const Privileges = () => {
     );
   };
 
-  // ✅ Update privileges - send boolean object format
+  // ✅ Update privileges - send all operations back
   const updatePrivileges = async () => {
     if (!id || !privilegeData.length) {
       toast.error("No data to update");
       return;
     }
 
-    // ✅ Convert table data to backend format (operations as boolean objects)
-    const permissions = privilegeData.map(item => {
-      const operations = {
+    const permissions = privilegeData.map(item => ({
+      resource: item.resource,
+      operations: {
+        view: item.view,
         add: item.add,
         edit: item.edit,
         delete: item.delete,
-      };
-
-      // Add publish only for celebrity
-      if (item.resource === "celebrity") {
-        operations.publish = item.publish;
+        publish: item.publish,
       }
-
-      return {
-        resource: item.resource,
-        operations: operations
-      };
-    });
+    }));
 
     const payload = { permissions };
 
@@ -333,7 +346,7 @@ const Privileges = () => {
     try {
       const response = await setPrivileges(id, payload);
       toast.success(response.data?.message || response.message || "Privileges updated successfully!");
-      fetchPrivileges(); // Refresh data
+      fetchPrivileges();
     } catch (error) {
       console.error("❌ Error updating privileges:", error);
       toast.error(error?.response?.data?.message || error.message || "Failed to update privileges");
@@ -349,8 +362,12 @@ const Privileges = () => {
   // Check if master checkbox should be checked
   useEffect(() => {
     const allChecked = privilegeData.length > 0 && privilegeData.every(
-      item => item.add && item.edit && item.delete && 
-              (item.resource === "celebrity" ? item.publish : true)
+      item => {
+        const hasPublish = item.resource.startsWith('celebrity.');
+        return hasPublish 
+          ? (item.view && item.add && item.edit && item.delete && item.publish)
+          : (item.view && item.add && item.edit && item.delete);
+      }
     );
     setMasterChecked(allChecked);
   }, [privilegeData]);
@@ -373,10 +390,12 @@ const Privileges = () => {
         ),
         accessor: "resourceName",
         Cell: ({ value, row }) => {
-          const { id } = row.original;
-          const allActive = row.original.add && row.original.edit && 
-                           row.original.delete && 
-                           (row.original.resource === "celebrity" ? row.original.publish : true);
+          const { id, resource } = row.original;
+          const hasPublish = resource.startsWith('celebrity.');
+          const allActive = hasPublish
+            ? (row.original.view && row.original.add && row.original.edit && row.original.delete && row.original.publish)
+            : (row.original.view && row.original.add && row.original.edit && row.original.delete);
+          
           return (
             <div className="form-check mb-3">
               <Input
@@ -390,6 +409,28 @@ const Privileges = () => {
           );
         },
       },
+      // View column
+      {
+        Header: "View",
+        accessor: "view",
+        Cell: ({ row }) => {
+          const isActive = row.original.view;
+          return (
+            <div className="form-check form-switch">
+              <Input
+                type="checkbox"
+                className="form-check-input"
+                checked={isActive}
+                onChange={() => handleToggle(row.original.id, 'view')}
+              />
+              <Label className="form-check-label">
+                {isActive ? "Active" : "Inactive"}
+              </Label>
+            </div>
+          );
+        },
+      },
+      // Add, Edit, Delete columns
       ...["add", "edit", "delete"].map(field => ({
         Header: field.charAt(0).toUpperCase() + field.slice(1),
         accessor: field,
@@ -410,35 +451,34 @@ const Privileges = () => {
           );
         },
       })),
-    ];
-
-    // Add publish column for celebrity
-    baseColumns.push({
-      Header: "Publish",
-      accessor: "publish",
-      Cell: ({ row }) => {
-        const isCelebrity = row.original.resource === "celebrity";
-        const isActive = row.original.publish;
-        
-        if (!isCelebrity) {
-          return <span className="text-muted">-</span>;
-        }
-
-        return (
-          <div className="form-check form-switch">
-            <Input
-              type="checkbox"
-              className="form-check-input"
-              checked={isActive}
-              onChange={() => handleToggle(row.original.id, "publish")}
-            />
-            <Label className="form-check-label">
-              {isActive ? "Active" : "Inactive"}
-            </Label>
-          </div>
-        );
+      // Publish column - only show for resources that have publish in operations
+      {
+        Header: "Publish",
+        accessor: "publish",
+        Cell: ({ row }) => {
+          const hasPublish = row.original.resource.startsWith('celebrity.');
+          
+          if (!hasPublish) {
+            return <span className="text-muted text-center d-block">-</span>;
+          }
+          
+          const isActive = row.original.publish;
+          return (
+            <div className="form-check form-switch">
+              <Input
+                type="checkbox"
+                className="form-check-input"
+                checked={isActive}
+                onChange={() => handleToggle(row.original.id, 'publish')}
+              />
+              <Label className="form-check-label">
+                {isActive ? "Active" : "Inactive"}
+              </Label>
+            </div>
+          );
+        },
       },
-    });
+    ];
 
     return baseColumns;
   }, [privilegeData, masterChecked]);
@@ -468,7 +508,7 @@ const Privileges = () => {
                   <TableContainer
                     columns={columns}
                     data={privilegeData}
-                    customPageSize={10}
+                    customPageSize={20}
                     isGlobalFilter={true}
                   />
                   <Row className="mt-3">

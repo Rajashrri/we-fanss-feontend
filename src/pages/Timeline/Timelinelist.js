@@ -1,3 +1,4 @@
+// src/pages/Timeline/TimelineList.jsx
 import React, { Fragment, useState, useEffect } from "react";
 import {
   Card,
@@ -19,18 +20,22 @@ import {
   usePagination,
 } from "react-table";
 import PropTypes from "prop-types";
-import Breadcrumbs from "../../components/Common/Breadcrumb";
-import { Link, useParams, useNavigate } from "react-router-dom";
+import { Link, useParams, useNavigate, useSearchParams } from "react-router-dom";
 import { toast } from "react-toastify";
-import { Plus, Search, Pencil, Trash } from "lucide-react";
+import { Plus, Search, Pencil, Trash, Check, X } from "lucide-react";
 import {
   gettimelines,
   deletetimeline,
   updatetimelineStatus,
 } from "../../api/timelineApi";
 import { getCelebratyById } from "../../api/celebratyApi";
+import { publishItem, rejectItem } from "../../api/moderationApi";
 import FixedSectionTab from "../Section/FixedSectionTab";
 import DeleteConfirmModal from "../../components/Modals/DeleteModal";
+import RejectReasonModal from "../../components/Modals/RejectReasonModal"; // ✅ NEW IMPORT
+import ModerationFilter from "../../components/Common/ModerationFilter";
+import ModerationBadge from "../../components/Common/ModerationBadge";
+import { formatDate } from "../../utils/dateUtils";
 
 // ========================================
 // GLOBAL FILTER COMPONENT
@@ -48,7 +53,7 @@ function GlobalFilter({
   }, 200);
 
   return (
-    <Col md={4}>
+    <Col md={3}>
       <div style={{ position: "relative" }}>
         <Input
           type="text"
@@ -95,6 +100,9 @@ const TableContainer = ({
   className,
   isGlobalFilter,
   celebrityId,
+  onFilterChange,
+  filters,
+  moderationStats,
 }) => {
   const {
     getTableProps,
@@ -134,8 +142,8 @@ const TableContainer = ({
 
   return (
     <Fragment>
-      {/* HEADER ROW - Page Size, Search, Add Button */}
-      <Row className="mb-3">
+      {/* HEADER ROW - Page Size, Search, Filters, Add Button */}
+      <Row className="mb-3 align-items-center">
         <Col md={2}>
           <select
             className="form-select"
@@ -163,7 +171,13 @@ const TableContainer = ({
           />
         )}
 
-        <Col md={6}>
+        <ModerationFilter 
+          filters={filters}
+          onFilterChange={onFilterChange}
+          moderationStats={moderationStats}
+        />
+
+        <Col md={3}>
           <div className="d-flex justify-content-end">
             <Link
               to={`/dashboard/add-timeline/${celebrityId}`}
@@ -178,6 +192,7 @@ const TableContainer = ({
                 alignItems: "center",
                 gap: "8px",
                 fontSize: "16px",
+                textDecoration: "none",
               }}
             >
               <Plus size={20} />
@@ -206,6 +221,7 @@ const TableContainer = ({
                       fontSize: "14px",
                       color: "#666",
                       borderBottom: "none",
+                      verticalAlign: "middle",
                     }}
                   >
                     <div {...column.getSortByToggleProps()}>
@@ -246,6 +262,7 @@ const TableContainer = ({
                           padding: "16px",
                           fontSize: "14px",
                           color: "#333",
+                          verticalAlign: "middle",
                         }}
                       >
                         {cell.render("Cell")}
@@ -271,32 +288,34 @@ const TableContainer = ({
         <Row className="justify-content-end align-items-center mt-4">
           <Col className="col-auto">
             <div className="d-flex gap-2 align-items-center">
-              <Button
-                color="light"
+              <button
                 onClick={() => gotoPage(0)}
                 disabled={!canPreviousPage}
-                size="sm"
                 style={{
                   border: "1px solid #e0e0e0",
                   borderRadius: "6px",
                   padding: "6px 12px",
+                  backgroundColor: "white",
+                  cursor: canPreviousPage ? "pointer" : "not-allowed",
+                  opacity: canPreviousPage ? 1 : 0.5,
                 }}
               >
                 {"<<"}
-              </Button>
-              <Button
-                color="light"
+              </button>
+              <button
                 onClick={previousPage}
                 disabled={!canPreviousPage}
-                size="sm"
                 style={{
                   border: "1px solid #e0e0e0",
                   borderRadius: "6px",
                   padding: "6px 12px",
+                  backgroundColor: "white",
+                  cursor: canPreviousPage ? "pointer" : "not-allowed",
+                  opacity: canPreviousPage ? 1 : 0.5,
                 }}
               >
                 {"<"}
-              </Button>
+              </button>
 
               <select
                 className="form-select"
@@ -333,32 +352,34 @@ const TableContainer = ({
                 }}
               />
 
-              <Button
-                color="light"
+              <button
                 onClick={nextPage}
                 disabled={!canNextPage}
-                size="sm"
                 style={{
                   border: "1px solid #e0e0e0",
                   borderRadius: "6px",
                   padding: "6px 12px",
+                  backgroundColor: "white",
+                  cursor: canNextPage ? "pointer" : "not-allowed",
+                  opacity: canNextPage ? 1 : 0.5,
                 }}
               >
                 {">"}
-              </Button>
-              <Button
-                color="light"
+              </button>
+              <button
                 onClick={() => gotoPage(pageCount - 1)}
                 disabled={!canNextPage}
-                size="sm"
                 style={{
                   border: "1px solid #e0e0e0",
                   borderRadius: "6px",
                   padding: "6px 12px",
+                  backgroundColor: "white",
+                  cursor: canNextPage ? "pointer" : "not-allowed",
+                  opacity: canNextPage ? 1 : 0.5,
                 }}
               >
                 {">>"}
-              </Button>
+              </button>
             </div>
           </Col>
         </Row>
@@ -374,6 +395,9 @@ TableContainer.propTypes = {
   className: PropTypes.string,
   isGlobalFilter: PropTypes.bool,
   celebrityId: PropTypes.string,
+  onFilterChange: PropTypes.func,
+  filters: PropTypes.object,
+  moderationStats: PropTypes.object,
 };
 
 // ========================================
@@ -382,27 +406,39 @@ TableContainer.propTypes = {
 const TimelineList = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
 
   // ========== STATE ==========
   const [timelineList, setTimelineList] = useState([]);
   const [loading, setLoading] = useState(true);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
-  const [deleteId, setDeleteId] = useState(null);
+  const [rejectModalOpen, setRejectModalOpen] = useState(false); // ✅ NEW: Reject modal state
+  const [selectedItem, setSelectedItem] = useState(null);
+  const [actionLoading, setActionLoading] = useState(false);
   const [celebrityName, setCelebrityName] = useState("");
+  const [moderationStats, setModerationStats] = useState({
+    pending: 0,
+    published: 0,
+    rejected: 0,
+  });
 
-  // ========== HELPER FUNCTIONS ==========
-  const formatDate = (dateString) => {
-    if (!dateString) return "—";
-    return dateString;
-  };
+  const [filters, setFilters] = useState({
+    moderationState: searchParams.get('moderationState') || '',
+    status: searchParams.get('status') || '',
+  });
 
   // ========== API CALLS ==========
   const fetchData = async () => {
     try {
       setLoading(true);
-      const result = await gettimelines(id);
-      const data = result.data || result.msg || [];
+      const result = await gettimelines(id, filters);
+      const data = result.data || [];
+      
       setTimelineList(Array.isArray(data) ? data : []);
+      
+      if (result.meta?.moderationStats) {
+        setModerationStats(result.meta.moderationStats);
+      }
     } catch (error) {
       console.error("Error fetching Timeline:", error);
       toast.error("Failed to load Timeline data.");
@@ -415,12 +451,27 @@ const TimelineList = () => {
   const fetchCelebrityName = async () => {
     try {
       const response = await getCelebratyById(id);
-      if (response.msg?.name) {
-        setCelebrityName(response.msg.name);
+      if (response.data?.identityProfile?.name) {
+        setCelebrityName(response.data.identityProfile.name);
       }
     } catch (err) {
       console.error("Error fetching celebrity:", err);
     }
+  };
+
+  const handleFilterChange = (filterName, value) => {
+    const newFilters = {
+      ...filters,
+      [filterName]: value,
+    };
+    
+    setFilters(newFilters);
+    
+    const params = {};
+    if (newFilters.moderationState) params.moderationState = newFilters.moderationState;
+    if (newFilters.status) params.status = newFilters.status;
+    
+    setSearchParams(params);
   };
 
   const handleStatusChange = async (currentStatus, timelineId) => {
@@ -430,7 +481,7 @@ const TimelineList = () => {
       const res_data = await updatetimelineStatus(timelineId, newStatus);
 
       if (res_data.success === false) {
-        toast.error(res_data.msg || "Failed to update status");
+        toast.error(res_data.message || "Failed to update status");
         return;
       }
 
@@ -442,47 +493,156 @@ const TimelineList = () => {
     }
   };
 
-  const handleDeleteClick = (timelineId) => {
-    setDeleteId(timelineId);
+  // ✅ PUBLISH BUTTON CLICK - Direct publish
+  const handlePublishClick = async (item) => {
+    if (!item) return;
+
+    try {
+      const response = await publishItem("timeline", item._id);
+
+      if (response.success === false) {
+        toast.error(response.message || "Failed to publish timeline");
+        return;
+      }
+
+      toast.success("Timeline published successfully");
+      fetchData();
+    } catch (error) {
+      console.error("Error publishing timeline:", error);
+      toast.error("Error publishing timeline. Please try again!");
+    }
+  };
+
+  // ✅ REJECT BUTTON CLICK - Open modal
+  const handleRejectClick = (item) => {
+    setSelectedItem(item);
+    setRejectModalOpen(true);
+  };
+
+  // ✅ REJECT CONFIRM WITH REASON - From modal
+  const handleRejectConfirm = async (reason) => {
+    if (!selectedItem) return;
+
+    try {
+      const response = await rejectItem("timeline", selectedItem._id, {
+        moderationRemark: reason // ✅ User ka reason pass karo
+      });
+
+      if (response.success === false) {
+        toast.error(response.message || "Failed to reject timeline");
+        return;
+      }
+
+      toast.success("Timeline rejected successfully");
+      fetchData();
+      setRejectModalOpen(false);
+      setSelectedItem(null);
+    } catch (error) {
+      console.error("Error rejecting timeline:", error);
+      toast.error("Error rejecting timeline. Please try again!");
+    }
+  };
+
+  // ✅ DELETE BUTTON CLICK
+  const handleDeleteClick = (item) => {
+    setSelectedItem(item);
     setDeleteModalOpen(true);
   };
 
+  const handlePublish = async () => {
+    if (!selectedItem) return;
+
+    try {
+      setActionLoading(true);
+      const response = await publishItem("timeline", selectedItem._id);
+
+      if (response.success === false) {
+        toast.error(response.message || "Failed to publish timeline");
+        return;
+      }
+
+      toast.success("Timeline published successfully");
+      fetchData();
+      setDeleteModalOpen(false);
+      setSelectedItem(null);
+    } catch (error) {
+      console.error("Error publishing timeline:", error);
+      toast.error("Error publishing timeline. Please try again!");
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleReject = async () => {
+    if (!selectedItem) return;
+
+    try {
+      setActionLoading(true);
+      const response = await rejectItem("timeline", selectedItem._id, {
+        moderationRemark: "Rejected from timeline list"
+      });
+
+      if (response.success === false) {
+        toast.error(response.message || "Failed to reject timeline");
+        return;
+      }
+
+      toast.success("Timeline rejected successfully");
+      fetchData();
+      setDeleteModalOpen(false);
+      setSelectedItem(null);
+    } catch (error) {
+      console.error("Error rejecting timeline:", error);
+      toast.error("Error rejecting timeline. Please try again!");
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
   const handleDeleteConfirm = async () => {
-    if (!deleteId) {
+    if (!selectedItem) {
       toast.error("No ID to delete.");
       return;
     }
 
     try {
-      const data = await deletetimeline(deleteId);
+      setActionLoading(true);
+      const data = await deletetimeline(selectedItem._id);
 
       if (data.success === false) {
-        toast.error(data.msg || "Failed to delete Timeline");
+        toast.error(data.message || "Failed to delete Timeline");
         return;
       }
 
       toast.success("Timeline deleted successfully");
       setTimelineList((prevItems) =>
-        prevItems.filter((row) => row._id !== deleteId)
+        prevItems.filter((row) => row._id !== selectedItem._id)
       );
       setDeleteModalOpen(false);
-      setDeleteId(null);
+      setSelectedItem(null);
     } catch (error) {
       console.error("Error deleting Timeline:", error);
       toast.error("Something went wrong.");
+    } finally {
+      setActionLoading(false);
     }
   };
 
   const handleDeleteCancel = () => {
     setDeleteModalOpen(false);
-    setDeleteId(null);
+    setSelectedItem(null);
   };
 
-  // ========== EFFECTS ==========
+  // ✅ REJECT MODAL CANCEL
+  const handleRejectCancel = () => {
+    setRejectModalOpen(false);
+    setSelectedItem(null);
+  };
+
   useEffect(() => {
     fetchData();
     fetchCelebrityName();
-  }, [id]);
+  }, [id, filters]);
 
   // ========== TABLE COLUMNS ==========
   const columns = [
@@ -502,12 +662,17 @@ const TimelineList = () => {
       Cell: ({ value }) => <strong style={{ fontWeight: "500" }}>{value}</strong>,
     },
     {
+      Header: "Moderation",
+      accessor: "moderationState",
+      Cell: ({ value }) => <ModerationBadge state={value} />,
+    },
+    {
       Header: "From Year",
-      accessor: "from_year",
+      accessor: "fromYear",
     },
     {
       Header: "To Year",
-      accessor: "to_year",
+      accessor: "toYear",
     },
     {
       Header: "Status",
@@ -540,63 +705,111 @@ const TimelineList = () => {
     {
       Header: "Options",
       disableSortBy: true,
-      Cell: ({ row }) => (
-        <div className="d-flex gap-2">
-          <Link
-            to={`/dashboard/update-timeline/${row.original._id}`}
-            style={{
-              backgroundColor: "#4285F41F",
-              color: "#1E90FF",
-              border: "none",
-              borderRadius: "4px",
-              textDecoration: "none",
-              display: "inline-flex",
-              alignItems: "center",
-              justifyContent: "center",
-              width: "40px",
-              height: "40px",
-            }}
-          >
-            <Pencil size={20} strokeWidth="2" />
-          </Link>
+      Cell: ({ row }) => {
+        const isPending = row.original.moderationState?.toLowerCase() === 'pending';
 
-          <Button
-            onClick={() => handleDeleteClick(row.original._id)}
-            style={{
-              backgroundColor: "#FFE5E5",
-              color: "#FF5555",
-              border: "none",
-              borderRadius: "6px",
-              padding: "8px 12px",
-              width: "40px",
-              height: "40px",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-            }}
-          >
-            <Trash size={20} color="#BA2526" />
-          </Button>
-        </div>
-      ),
+        return (
+          <div className="d-flex gap-2">
+            
+            {/* PUBLISH BUTTON */}
+            {isPending && (
+              <button
+                onClick={() => handlePublishClick(row.original)}
+                title="Publish"
+                style={{
+                  backgroundColor: "#D4EDDA",
+                  color: "#22C55E",
+                  border: "none",
+                  borderRadius: "6px",
+                  width: "40px",
+                  height: "40px",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  cursor: "pointer",
+                }}
+              >
+                <Check size={20} strokeWidth="2" />
+              </button>
+            )}
+
+            {/* REJECT BUTTON - Modal khulega */}
+            {isPending && (
+              <button
+                onClick={() => handleRejectClick(row.original)} // ✅ Modal open karega
+                title="Reject"
+                style={{
+                  backgroundColor: "#FFE5E5",
+                  color: "#EF4444",
+                  border: "none",
+                  borderRadius: "6px",
+                  width: "40px",
+                  height: "40px",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  cursor: "pointer",
+                }}
+              >
+                <X size={20} strokeWidth="2" />
+              </button>
+            )}
+
+            {/* EDIT BUTTON */}
+            <Link
+              to={`/dashboard/update-timeline/${row.original._id}`}
+              title="Edit"
+              style={{
+                backgroundColor: "#4285F41F",
+                color: "#1E90FF",
+                border: "none",
+                borderRadius: "6px",
+                textDecoration: "none",
+                display: "inline-flex",
+                alignItems: "center",
+                justifyContent: "center",
+                width: "40px",
+                height: "40px",
+              }}
+            >
+              <Pencil size={20} strokeWidth="2" />
+            </Link>
+
+            {/* DELETE BUTTON */}
+            <button
+              onClick={() => handleDeleteClick(row.original)}
+              title="Delete"
+              style={{
+                backgroundColor: "#FFE5E5",
+                color: "#FF5555",
+                border: "none",
+                borderRadius: "6px",
+                padding: "8px 12px",
+                width: "40px",
+                height: "40px",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                cursor: "pointer",
+              }}
+            >
+              <Trash size={20} color="#BA2526" />
+            </button>
+          </div>
+        );
+      },
     },
   ];
 
-  // ========== BREADCRUMB ==========
-  const breadcrumbItems = [
-    { title: "Dashboard", link: "/" },
-    { title: "Celebrity List", link: "/dashboard/celebrity-list" },
-    { title: "Timeline", link: "#" },
-  ];
-
-  // ========== RENDER ==========
   return (
     <Fragment>
       <div className="page-content">
-        <FixedSectionTab activeTabId="timeline" />
+        <FixedSectionTab 
+          activeTabId="timeline" 
+          pendingCount={moderationStats.pending}
+        />
+        
         <Container fluid>
-          {/* <Breadcrumbs title="Timeline" breadcrumbItems={breadcrumbItems} /> */}
-
           <Card
             style={{
               border: "none",
@@ -614,8 +827,6 @@ const TimelineList = () => {
                     </span>
                   )}
                 </h4>
-
-               
               </div>
 
               {loading ? (
@@ -632,22 +843,37 @@ const TimelineList = () => {
                   customPageSize={10}
                   isGlobalFilter={true}
                   celebrityId={id}
+                  onFilterChange={handleFilterChange}
+                  filters={filters}
+                  moderationStats={moderationStats}
                 />
               )}
             </CardBody>
           </Card>
         </Container>
 
-        {/* ========== DELETE CONFIRMATION MODAL ========== */}
+        {/* ========== DELETE MODAL ========== */}
         <DeleteConfirmModal
           isOpen={deleteModalOpen}
           toggle={handleDeleteCancel}
           onConfirm={handleDeleteConfirm}
-          title="Delete Timeline"
-          message="Are you sure you want to delete this timeline entry? This action cannot be undone."
-          confirmText="Yes, Delete"
+          onPublish={handlePublish}
+          onReject={handleReject}
+          title="Manage Timeline"
+          message={`What would you like to do with "${selectedItem?.title || 'this timeline'}"?`}
+          confirmText="Delete"
           cancelText="Cancel"
-          confirmColor="danger"
+          showPublish={selectedItem?.moderationState === 'pending'}
+          showReject={selectedItem?.moderationState === 'pending'}
+          loading={actionLoading}
+        />
+
+        {/* ========== REJECT REASON MODAL ========== ✅ NEW */}
+        <RejectReasonModal
+          isOpen={rejectModalOpen}
+          toggle={handleRejectCancel}
+          onConfirm={handleRejectConfirm}
+          itemTitle={selectedItem?.title || ''}
         />
       </div>
     </Fragment>

@@ -39,8 +39,16 @@ export const addCelebraty = async (formData) => {
   return response.data;
 };
 
-export const getCelebraties = async () => {
-  const response = await httpClient.get('/celebraty/getcelebraties');
+export const getCelebraties = async (params = {}) => {
+  const response = await httpClient.get('/celebraty/getcelebraties', {
+    params: {
+      page: params.page || 1,
+      limit: params.limit || 10,
+      search: params.search || '',
+      status: params.status || '', 
+      moderationState: params.moderationState || '',
+    }
+  });
   return response.data;
 };
 

@@ -91,6 +91,8 @@ import UpdateCelebrityForm from "../pages/Celebraty/UpdateCelebrity";
 import UserManagementList from "../pages/UserManagement/UserManagementList";
 import RelatedPersonalitiesList from "../pages/RelatedPersonality/RelatedPersonalitiesList";
 import ProfessionSectionTab from "../pages/Section/ProfessionSectionTab";
+import CelebrityPendingDetails from "../pages/moderation/CelebrityPendingDetails";
+import CelebrityModerationList from "../pages/moderation/CelebrityModerationList";
 
 
 /* ================= ROUTER ================= */
@@ -167,6 +169,12 @@ const router = createBrowserRouter([
         path: "section-template-edit/:celebId/:sectionId/:dataId",
         element: <TemplateEdit />,
       },
+
+      { path: "moderation/celebrities", element: <CelebrityModerationList /> },
+    { 
+      path: "moderation/celebrity/:id/pending-details", 
+      element: <CelebrityPendingDetails /> 
+    },
 
       { path: "role-master", element: <RoleMasterList /> },
       { path: "privileges/:id", element: <Privileges /> },

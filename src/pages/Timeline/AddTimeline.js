@@ -56,57 +56,52 @@ const Addtimeline = () => {
   };
 
   const handleAddSubmit = async (e) => {
-    e.preventDefault();
-    const newErrors = {};
+  e.preventDefault();
+  const newErrors = {};
 
-    // ✅ Validation
-    if (!timeline.title) newErrors.title = "Title is required";
-    if (!timeline.description)
-      newErrors.description = "Description is required";
-    if (!timeline.from_year) newErrors.from_year = "From year is required";
-    if (
-      timeline.from_year &&
-      timeline.to_year &&
-      timeline.from_year > timeline.to_year
-    ) {
-      newErrors.to_year = "To year must be greater than or equal to From year";
+  // ✅ Validation
+  if (!timeline.title) newErrors.title = "Title is required";
+  if (!timeline.description)
+    newErrors.description = "Description is required";
+  if (!timeline.from_year) newErrors.from_year = "From year is required";
+  if (
+    timeline.from_year &&
+    timeline.to_year &&
+    timeline.from_year > timeline.to_year
+  ) {
+    newErrors.to_year = "To year must be greater than or equal to From year";
+  }
+
+  if (Object.keys(newErrors).length > 0) {
+    setErrors(newErrors);
+    return;
+  }
+
+  try {
+    const formData = new FormData();
+    formData.append("title", timeline.title);
+    formData.append("description", timeline.description);
+    formData.append("fromYear", timeline.from_year);  // ✅ Changed from from_year
+    formData.append("toYear", timeline.to_year);      // ✅ Changed from to_year
+    formData.append("celebrity", celebrityId);         // ✅ Changed from celebrityId
+
+    if (timeline.media) formData.append("media", timeline.media);
+
+    const res_data = await addtimeline(formData);
+    console.log("API Response:", res_data);
+
+    if (res_data?.success === true) {
+      toast.success(res_data.message || "Timeline added successfully!");
+      setErrors({});
+      navigate(`/dashboard/timeline-list/${celebrityId}`);
+    } else {
+      toast.error(res_data?.message || "Failed to add timeline");
     }
-
-    if (Object.keys(newErrors).length > 0) {
-      setErrors(newErrors);
-      return;
-    }
-
-    try {
-      const adminid = localStorage.getItem("adminid");
-
-      const formData = new FormData();
-      formData.append("title", timeline.title);
-      formData.append("description", timeline.description);
-      formData.append("from_year", timeline.from_year);
-      formData.append("to_year", timeline.to_year);
-      formData.append("createdBy", adminid);
-      formData.append("celebrityId", celebrityId);
-
-      if (timeline.media) formData.append("media", timeline.media);
-
-      const res_data = await addtimeline(formData);
-      console.log("API Response:", res_data);
-
-      if (res_data?.success === true) {
-        toast.success(res_data.msg || "Timeline added successfully!");
-        setErrors({});
-        navigate(`/dashboard/timeline-list/${celebrityId}`);
-      } else if (res_data?.msg === "timeline already exist") {
-        toast.error("Timeline already exists!");
-      } else {
-        toast.error(res_data?.msg || "Failed to add timeline");
-      }
-    } catch (error) {
-      console.error("Add timeline Error:", error);
-      toast.error("Something went wrong!");
-    }
-  };
+  } catch (error) {
+    console.error("Add timeline Error:", error);
+    toast.error(error.message || "Something went wrong!");
+  }
+};
 
   return (
     <div className="page-content">

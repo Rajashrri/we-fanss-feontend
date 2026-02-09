@@ -1,9 +1,17 @@
 // src/api/timelineApi.js
 import httpClient from '../config/http/httpClient';
 
-export const gettimelines = async (id) => {
+// src/api/timelineApi.js
+export const gettimelines = async (id, filters = {}) => {
   try {
-    const response = await httpClient.get(`/timeline/getdata/${id}`);
+    const params = new URLSearchParams();
+    if (filters.moderationState) params.append('moderationState', filters.moderationState);
+    if (filters.status) params.append('status', filters.status);
+    
+    const queryString = params.toString();
+    const url = `/timeline/getdata/${id}${queryString ? `?${queryString}` : ''}`;
+    
+    const response = await httpClient.get(url);
     return response.data;
   } catch (error) {
     throw new Error(error.response?.data?.message || 'Failed to fetch timelines');
