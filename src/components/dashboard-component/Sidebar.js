@@ -62,10 +62,7 @@ const SidebarContent = () => {
         </li>
 
         {/* Professions */}
-        <PrivilegeAccess
-          resource={PRIVILEGE_RESOURCES.PROFESSION}
-          action={commonActions}
-        >
+       
           <li>
             <NavLink
               to="/dashboard/professional-list"
@@ -77,7 +74,7 @@ const SidebarContent = () => {
               <span>Professions</span>
             </NavLink>
           </li>
-        </PrivilegeAccess>
+        
 
         {/* Languages */}
         <PrivilegeAccess
