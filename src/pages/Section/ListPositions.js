@@ -608,8 +608,8 @@ const PositionsList = () => {
   // ========== RENDER ==========
   return (
     <Fragment>
-      <div className="page-content">
-        <FixedSectionTab activeTabId="positions" />
+    
+        
         <Container fluid>
           <Breadcrumbs
             title="Positions"
@@ -672,7 +672,7 @@ const PositionsList = () => {
           cancelText="Cancel"
           confirmColor="danger"
         />
-      </div>
+     
     </Fragment>
   );
 };

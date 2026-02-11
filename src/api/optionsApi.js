@@ -1,94 +1,93 @@
+// src/api/optionsApi.js
 import httpClient from "../config/http/httpClient";
 
-
-const extractErrorMessage = (error, defaultMessage) => {
-  return error.response?.data?.message || defaultMessage;
-};
-
-
 /**
- * @route   POST /api/options/celebrities
- * @desc    Get celebrity options (id and label)
- * @access  Private
- * @param   {string[]} excludeList - Optional array of celebrity IDs to exclude
+ * Get celebrity options
+ * @param {string[]} excludeList - Array of celebrity IDs to exclude (optional)
+ * @returns {Promise<{success: boolean, message: string, data: Array<{id: string, label: string}>}>}
  */
 export const getCelebrityOptions = async (excludeList = []) => {
   try {
-    const { data } = await httpClient.post("/options/celebrities", {
-      excludeList,
-    });
-    return data;
+    const response = await httpClient.post('/options/celebrities', { excludeList });
+    return response.data;
   } catch (error) {
-    throw extractErrorMessage(error, "Failed to fetch celebrity options");
+    console.error("Error fetching celebrity options:", error);
+    throw error;
   }
 };
 
-
 /**
- * @route   POST /api/options/languages
- * @desc    Get language options (id and label)
- * @access  Private
- * @param   {string[]} excludeList - Optional array of language IDs to exclude
+ * Get language options
+ * @param {string[]} excludeList - Array of language IDs to exclude (optional)
+ * @returns {Promise<{success: boolean, message: string, data: Array<{id: string, label: string}>}>}
  */
 export const getLanguageOptions = async (excludeList = []) => {
   try {
-    const { data } = await httpClient.post("/options/languages", {
-      excludeList,
-    });
-    return data;
+    const response = await httpClient.post('/options/languages', { excludeList });
+    return response.data;
   } catch (error) {
-    throw extractErrorMessage(error, "Failed to fetch language options");
+    console.error("Error fetching language options:", error);
+    throw error;
   }
 };
 
-
 /**
- * @route   POST /api/options/social-links
- * @desc    Get social link options (id and label)
- * @access  Private
- * @param   {string[]} excludeList - Optional array of social link IDs to exclude
+ * Get social link options
+ * @param {string[]} excludeList - Array of social link IDs to exclude (optional)
+ * @returns {Promise<{success: boolean, message: string, data: Array<{id: string, label: string}>}>}
  */
 export const getSocialLinkOptions = async (excludeList = []) => {
   try {
-    const { data } = await httpClient.post("/options/social-links", {
-      excludeList,
-    });
-    return data;
+    const response = await httpClient.post('/options/social-links', { excludeList });
+    return response.data;
   } catch (error) {
-    throw extractErrorMessage(error, "Failed to fetch social link options");
+    console.error("Error fetching social link options:", error);
+    throw error;
   }
 };
 
-
 /**
- * @route   POST /api/options/trivia-types
- * @desc    Get trivia type options (id and label)
- * @access  Private
- * @param   {string[]} excludeList - Optional array of trivia type IDs to exclude
+ * Get trivia type options
+ * @param {string[]} excludeList - Array of trivia type IDs to exclude (optional)
+ * @returns {Promise<{success: boolean, message: string, data: Array<{id: string, label: string}>}>}
  */
 export const getTriviaTypeOptions = async (excludeList = []) => {
   try {
-    const { data } = await httpClient.post("/options/trivia-types", {
-      excludeList,
-    });
-    return data;
+    const response = await httpClient.post('/options/trivia-types', { excludeList });
+    return response.data;
   } catch (error) {
-    throw extractErrorMessage(error, "Failed to fetch trivia type options");
+    console.error("Error fetching trivia type options:", error);
+    throw error;
+  }
+};
+
+/**
+ * Get profession options
+ * @param {string[]} excludeList - Array of profession IDs to exclude (optional)
+ * @returns {Promise<{success: boolean, message: string, data: Array<{id: string, label: string}>}>}
+ */
+export const getProfessionOptions = async (excludeList = []) => {
+  try {
+    const response = await httpClient.post('/options/professions', { excludeList });
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching profession options:", error);
+    throw error;
   }
 };
 
 
 /**
- * @desc    Get relationship type options for Related Personalities
- * @returns {Array} Array of {id, label} objects
+ * Get genre options
+ * @param {string[]} excludeList - Array of genre IDs to exclude (optional)
+ * @returns {Promise<{success: boolean, message: string, data: Array<{id: string, label: string}>}>}
  */
-export const getRelationshipTypeOptions = () => {
-  return [
-    { id: "Mentor", label: "Mentor" },
-    { id: "Co-star", label: "Co-star" },
-    { id: "Rival", label: "Rival" },
-    { id: "Family", label: "Family" },
-    { id: "Politically", label: "Politically" },
-    { id: "Other", label: "Other" },
-  ];
+export const getGenreOptions = async (excludeList = []) => {
+  try {
+    const response = await httpClient.post('/options/genres', { excludeList });
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching genre options:", error);
+    throw error;
+  }
 };

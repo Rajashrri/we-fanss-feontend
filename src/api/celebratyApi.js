@@ -40,6 +40,7 @@ export const addCelebraty = async (formData) => {
 };
 
 export const getCelebraties = async (params = {}) => {
+  
   const response = await httpClient.get('/celebraty/getcelebraties', {
     params: {
       page: params.page || 1,

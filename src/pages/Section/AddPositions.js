@@ -175,7 +175,7 @@ const AddPositions = () => {
       }
 
       toast.success("Positions added successfully!");
-      navigate(`/list-positions/${celebrityId}`);
+      navigate(`/dashboard/fixed-sections/${celebrityId}/positions`);
 
       // Reset form
       setFormData({

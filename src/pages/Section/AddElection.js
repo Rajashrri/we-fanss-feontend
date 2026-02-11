@@ -694,7 +694,7 @@ const AddElection = () => {
                     <Button
                       type="button"
                       color="secondary"
-                      onClick={() => navigate(`/dashboard/list-election/${celebrityId}`)}
+                      onClick={() => navigate(`/dashboard/fixed-sections/${celebrityId}/elections`)}
                       disabled={isSubmitting}
                       style={{
                         borderRadius: "8px",

@@ -1,9 +1,23 @@
 import httpClient from "../config/http/httpClient";
 
-// Get custom options by celebrity ID
-export const getcustomoption = async (celebrityId) => {
+// Get custom options by celebrity ID with filters
+export const getcustomoption = async (celebrityId, params = {}) => {
   try {
-    const response = await httpClient.get(`/custom-sections/celebrity/${celebrityId}`);
+    const queryParams = new URLSearchParams();
+    
+    
+    if (params.page) queryParams.append('page', params.page);
+    if (params.limit) queryParams.append('limit', params.limit);
+    
+    
+    if (params.search) queryParams.append('search', params.search);
+    if (params.status !== undefined && params.status !== null) queryParams.append('status', params.status);
+    if (params.moderationState) queryParams.append('moderationState', params.moderationState);
+    
+    const queryString = queryParams.toString();
+    const url = `/custom-sections/celebrity/${celebrityId}${queryString ? `?${queryString}` : ''}`;
+    
+    const response = await httpClient.get(url);
     return response.data;
   } catch (error) {
     console.error("Error fetching custom options:", error);
@@ -12,9 +26,9 @@ export const getcustomoption = async (celebrityId) => {
 };
 
 // Add new custom option
-export const addcustomoption = async (formData) => {
+export const addcustomoption = async (celebrityId, formData) => {
   try {
-    const response = await httpClient.post('/custom-sections/', formData, {
+    const response = await httpClient.post(`/custom-sections/celebrity/${celebrityId}`, formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
       },

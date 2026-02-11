@@ -626,8 +626,8 @@ const ElectionList = () => {
   // ========== RENDER ==========
   return (
     <Fragment>
-      <div className="page-content">
-        <FixedSectionTab activeTabId="election" />
+     
+       
         <Container fluid>
           <Breadcrumbs
             title="Elections"
@@ -690,7 +690,7 @@ const ElectionList = () => {
           cancelText="Cancel"
           confirmColor="danger"
         />
-      </div>
+      
     </Fragment>
   );
 };

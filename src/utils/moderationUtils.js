@@ -40,7 +40,7 @@ export const MODERATION_STATES = {
  * Get all moderation states as array
  */
 export const getModerationStates = () => [
-  { value: "", label: "All States" },
+  { value: "", label: "All" },
   { value: MODERATION_STATES.PENDING, label: "Pending" },
   { value: MODERATION_STATES.PUBLISHED, label: "Published" },
   { value: MODERATION_STATES.REJECTED, label: "Rejected" },

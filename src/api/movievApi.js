@@ -1,8 +1,12 @@
+// src/api/movievApi.js
 import httpClient from "../config/http/httpClient";
 
+/**
+ * Get language options
+ */
 export const getLanguageOptions = async () => {
   try {
-    const response = await httpClient.get('/Moviev/languageOptions');
+    const response = await httpClient.get('/Movie/languageOptions');
     return response.data;
   } catch (error) {
     console.error("Error fetching language options:", error);
@@ -10,9 +14,12 @@ export const getLanguageOptions = async () => {
   }
 };
 
+/**
+ * Get professions options
+ */
 export const getProfessionsOptions = async () => {
   try {
-    const response = await httpClient.get('/Moviev/professionsOptions');
+    const response = await httpClient.get('/Movie/professionsOptions');
     return response.data;
   } catch (error) {
     console.error("Error fetching profession options:", error);
@@ -20,9 +27,13 @@ export const getProfessionsOptions = async () => {
   }
 };
 
+/**
+ * Add a new movie
+ * @param {FormData} formData - Movie data with image
+ */
 export const addMoviev = async (formData) => {
   try {
-    const response = await httpClient.post('/moviev/addMoviev', formData, {
+    const response = await httpClient.post('/movie', formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
       },
@@ -34,9 +45,13 @@ export const addMoviev = async (formData) => {
   }
 };
 
+/**
+ * Get all movies by celebrity ID
+ * @param {string} id - Celebrity ID
+ */
 export const getMoviesByCelebrity = async (id) => {
   try {
-    const response = await httpClient.get(`/Moviev/getMoviesByCelebrity/${id}`);
+    const response = await httpClient.get(`/movie/celebrity/${id}`);
     return response.data;
   } catch (error) {
     console.error("Error fetching movies by celebrity:", error);
@@ -44,9 +59,13 @@ export const getMoviesByCelebrity = async (id) => {
   }
 };
 
+/**
+ * Delete a movie
+ * @param {string} id - Movie ID
+ */
 export const deleteMoviev = async (id) => {
   try {
-    const response = await httpClient.delete(`/Moviev/deletemoviev/${id}`);
+    const response = await httpClient.delete(`/movie/${id}`);
     return response.data;
   } catch (error) {
     console.error("Error deleting movie:", error);
@@ -54,9 +73,13 @@ export const deleteMoviev = async (id) => {
   }
 };
 
+/**
+ * Get movie by ID
+ * @param {string} id - Movie ID
+ */
 export const getMovievById = async (id) => {
   try {
-    const response = await httpClient.get(`/Moviev/getMovievByid/${id}`);
+    const response = await httpClient.get(`/movie/${id}`);
     return response.data;
   } catch (error) {
     console.error("Error fetching movie by ID:", error);
@@ -64,9 +87,14 @@ export const getMovievById = async (id) => {
   }
 };
 
+/**
+ * Update an existing movie
+ * @param {string} id - Movie ID
+ * @param {FormData} formData - Updated movie data
+ */
 export const updateMoviev = async (id, formData) => {
   try {
-    const response = await httpClient.patch(`/Moviev/updateMoviev/${id}`, formData, {
+    const response = await httpClient.patch(`/movie/${id}`, formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
       },
@@ -78,6 +106,9 @@ export const updateMoviev = async (id, formData) => {
   }
 };
 
+/**
+ * Get genre master options
+ */
 export const getGenreMaster = async () => {
   try {
     const response = await httpClient.get('/Moviev/GenreMasterOptions');
@@ -88,9 +119,14 @@ export const getGenreMaster = async () => {
   }
 };
 
+/**
+ * Update movie status only
+ * @param {string} id - Movie ID
+ * @param {string} status - New status
+ */
 export const updateMovieStatus = async (id, status) => {
   try {
-    const response = await httpClient.patch('/Moviev/update-statusMoviev', { id, status });
+    const response = await httpClient.patch(`/movie/status/${id}`, { status });
     return response.data;
   } catch (error) {
     console.error("Error updating movie status:", error);
@@ -98,6 +134,9 @@ export const updateMovieStatus = async (id, status) => {
   }
 };
 
+/**
+ * Get social links options
+ */
 export const getSocialLinksOptions = async () => {
   try {
     const response = await httpClient.get('/Moviev/sociallist');

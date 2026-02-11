@@ -608,8 +608,8 @@ const MovievList = () => {
   // ========== RENDER ==========
   return (
     <Fragment>
-      <div className="page-content">
-        <FixedSectionTab activeTabId="movie" />
+     
+       
         <Container fluid>
           {/* <Breadcrumbs
             title="Movies"
@@ -672,7 +672,7 @@ const MovievList = () => {
           cancelText="Cancel"
           confirmColor="danger"
         />
-      </div>
+      
     </Fragment>
   );
 };

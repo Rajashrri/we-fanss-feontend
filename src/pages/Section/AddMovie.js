@@ -10,88 +10,75 @@ import {
   Container,
 } from "reactstrap";
 import Breadcrumbs from "../../components/Common/Breadcrumb";
-import "flatpickr/dist/themes/material_blue.css";
-import Flatpickr from "react-flatpickr";
 import Select from "react-select";
 import { toast } from "react-toastify";
-import {
-  getLanguageOptions,
-  addMoviev,
-  getGenreMaster,
-} from "../../api/movievApi";
-import { useNavigate } from "react-router-dom";
-import { useParams } from "react-router-dom";
-
-import { useDropzone } from "react-dropzone";
+import { addMoviev } from "../../api/movievApi";
+import { getLanguageOptions, getGenreOptions } from "../../api/optionsApi";
+import { useNavigate, useParams } from "react-router-dom";
 import FixedSectionTab from "./FixedSectionTab";
 
 const AddMoviev = () => {
   const [breadcrumbItems] = useState([
     { title: "Dashboard", link: "#" },
-    { title: "Add Moviev", link: "#" },
+    { title: "Add Movie", link: "#" },
   ]);
   const navigate = useNavigate();
+  const { id } = useParams();
+  const celebrityId = id;
 
-  const { id } = useParams(); // ✅ match route
-  const celebrityId = id; // use it as celebrityId
-  const [optionscat, setOptions] = useState([]);
+  const [genreOptions, setGenreOptions] = useState([]);
+  const [languageOptions, setLanguageOptions] = useState([]);
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [errors, setErrors] = useState({});
 
   const [formData, setFormData] = useState({
     title: "",
-    release_year: "",
-    release_date: "",
+    releaseYear: "",
+    releaseDate: "",
     role: "",
-    role_type: "",
+    roleType: "",
     languages: [],
     director: "",
     producer: "",
     cast: "",
     notes: "",
     rating: "",
-    platform_rating: "",
-    image: "",
-    watchLinks: [],
-    genre: [], // ✅ CHANGED: Now an array for multi-select
+    platformRating: "",
+    genre: [],
     awards: "",
     sort: "",
-    statusnew: "Draft",
+    moderationState: "PENDING",
+    watchLinks: [],
   });
 
-  const [selectedFile, setSelectedFile] = useState(null);
-  const [errors, setErrors] = useState({});
-  const [languagesOptions, setLanguageOptions] = useState([]);
-
   useEffect(() => {
-    fetchLanguageOptions();
     fetchOptions();
   }, []);
 
-  const fetchLanguageOptions = async () => {
-    try {
-      const data = await getLanguageOptions();
-      const options = (data.msg || []).map((item) => ({
-        value: item._id,
-        label: item.name?.trim() || item.name,
-      }));
-      setLanguageOptions(options);
-    } catch (err) {
-      console.error("Error fetching language options:", err);
-    }
-  };
-
-  // ✅ Fetch category options
   const fetchOptions = async () => {
     try {
-      const res_data = await getGenreMaster();
-      const options = Array.isArray(res_data.msg)
-        ? res_data.msg.map((item) => ({
-            value: item._id,
-            label: item.name?.trim() || item.name,
-          }))
-        : [];
-      setOptions(options);
+      // ✅ Fetch languages using options API
+      const languagesData = await getLanguageOptions();
+      if (languagesData.success) {
+        const langOptions = languagesData.data.map((item) => ({
+          value: item.id,
+          label: item.label,
+        }));
+        setLanguageOptions(langOptions);
+      }
+
+      // ✅ Fetch genres using options API
+      const genreData = await getGenreOptions();
+      if (genreData.success) {
+        const genreOpts = genreData.data.map((item) => ({
+          value: item.id,
+          label: item.label,
+        }));
+        setGenreOptions(genreOpts);
+      }
     } catch (error) {
-      console.error("Error fetching category options:", error);
+      console.error("Error fetching options:", error);
+      toast.error("Failed to load form options");
     }
   };
 
@@ -100,17 +87,11 @@ const AddMoviev = () => {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleDateChange = (selectedDates, name) => {
-    const formattedDate = selectedDates[0].toISOString().split("T")[0];
-    setFormData((prev) => ({ ...prev, [name]: formattedDate }));
-  };
-
   const handleFileChange = (e) => {
     const file = e.target.files[0];
     if (file) setSelectedFile(file);
   };
 
-  // ✅ Handle Watch Links repeater
   const handleAddWatchLink = () => {
     setFormData((prev) => ({
       ...prev,
@@ -136,8 +117,7 @@ const AddMoviev = () => {
 
     const newErrors = {};
     if (!formData.title) newErrors.title = "Title is required";
-    if (!formData.release_year)
-      newErrors.release_year = "Release year is required";
+    if (!formData.releaseYear) newErrors.releaseYear = "Release year is required";
 
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
@@ -147,187 +127,187 @@ const AddMoviev = () => {
     try {
       const formDataToSend = new FormData();
 
-      // Append all form fields
+      // ✅ Append fields with correct backend field names
       formDataToSend.append("title", formData.title);
-      formDataToSend.append("release_year", formData.release_year);
-      formDataToSend.append("release_date", formData.release_date);
+      formDataToSend.append("releaseYear", formData.releaseYear);
+      formDataToSend.append("releaseDate", formData.releaseDate);
       formDataToSend.append("role", formData.role);
-      formDataToSend.append("role_type", formData.role_type);
-      formDataToSend.append("languages", JSON.stringify(formData.languages));
-      formDataToSend.append("watchLinks", JSON.stringify(formData.watchLinks));
-      formDataToSend.append("genre", JSON.stringify(formData.genre)); // ✅ CHANGED: Sending as JSON array
-
+      formDataToSend.append("roleType", formData.roleType);
       formDataToSend.append("director", formData.director);
       formDataToSend.append("producer", formData.producer);
       formDataToSend.append("cast", formData.cast);
       formDataToSend.append("notes", formData.notes);
       formDataToSend.append("rating", formData.rating);
-      formDataToSend.append("platform_rating", formData.platform_rating);
-      formDataToSend.append("celebrityId", celebrityId);
+      formDataToSend.append("platformRating", formData.platformRating);
       formDataToSend.append("awards", formData.awards);
       formDataToSend.append("sort", formData.sort);
-      formDataToSend.append("statusnew", formData.statusnew);
+      formDataToSend.append("moderationState", formData.moderationState);
+      formDataToSend.append("celebrity", celebrityId);
+
+      // ✅ Arrays - send as JSON strings
+      formDataToSend.append("languages", JSON.stringify(formData.languages));
+      formDataToSend.append("genre", JSON.stringify(formData.genre));
+      formDataToSend.append("watchLinks", JSON.stringify(formData.watchLinks));
+
+      // ✅ Image file
       if (selectedFile) {
         formDataToSend.append("image", selectedFile);
       }
 
+      // ✅ CreatedBy
       const adminid = localStorage.getItem("adminid");
-      formDataToSend.append("createdBy", adminid);
+      if (adminid) {
+        formDataToSend.append("createdBy", adminid);
+      }
 
       // Call backend API
       const result = await addMoviev(formDataToSend);
 
-     if (!result.success) {
-    toast.error(result.msg || "Failed to add movie.");
-    return;
-}
-
+      if (!result.success) {
+        toast.error(result.message || result.msg || "Failed to add movie.");
+        return;
+      }
 
       toast.success("Movie added successfully!");
-      navigate(`/dashboard/list-movie/${celebrityId}`);
+      navigate(`/dashboard/fixed-sections/${celebrityId}/movies`);
 
       // Reset form
       setFormData({
         title: "",
-        release_year: "",
-        release_date: "",
+        releaseYear: "",
+        releaseDate: "",
         role: "",
-        role_type: "",
+        roleType: "",
         languages: [],
         director: "",
         producer: "",
         cast: "",
         notes: "",
         rating: "",
-        statusnew: "Draft",
-        genre: [], 
-        platform_rating: "",
-        image: "",
-        watchLinks: [],
+        platformRating: "",
+        genre: [],
         awards: "",
         sort: "",
+        moderationState: "PENDING",
+        watchLinks: [],
       });
       setSelectedFile(null);
       setErrors({});
     } catch (err) {
       console.error("Add Movie Error:", err);
-      toast.error("Something went wrong while adding the movie.");
+      toast.error(err.response?.data?.message || "Something went wrong while adding the movie.");
     }
   };
 
   return (
     <div className="page-content">
-
-      
       <Container fluid>
-        <Breadcrumbs title="ADD Movie" breadcrumbItems={breadcrumbItems} />
+       
+        <Breadcrumbs title="Add Movie" breadcrumbItems={breadcrumbItems} />
         <Row>
           <Col xl="12">
             <Card>
               <CardBody>
                 <form onSubmit={handleAddSubmit}>
                   <Row>
-                    <Col md="6">
-                      <Label>Title</Label>
+                    <Col md="6" className="mb-3">
+                      <Label>Title <span className="text-danger">*</span></Label>
                       <Input
                         name="title"
                         value={formData.title}
                         onChange={handleInput}
-                        placeholder="Title"
+                        placeholder="Enter movie title"
                         type="text"
+                        maxLength={200}
                       />
                       {errors.title && (
                         <span className="text-danger">{errors.title}</span>
                       )}
                     </Col>
 
-                    {/* ✅ UPDATED: Multi-select Genre */}
-                    <Col md="6">
-                      <div className="mb-3">
-                        <Label className="form-label">Select Genre(s)</Label>
-                        <Select
-                          isMulti
-                          name="genre"
-                          options={optionscat}
-                          value={optionscat.filter((opt) =>
-                            formData.genre.includes(opt.value)
-                          )}
-                          onChange={(selectedOptions) =>
-                            setFormData((prev) => ({
-                              ...prev,
-                              genre: selectedOptions.map((opt) => opt.value),
-                            }))
-                          }
-                          placeholder="Select genres..."
-                          className="react-select-container"
-                          classNamePrefix="react-select"
-                        />
-                        {errors.genre && (
-                          <span className="text-danger">{errors.genre}</span>
+                    <Col md="6" className="mb-3">
+                      <Label>Select Genre(s)</Label>
+                      <Select
+                        isMulti
+                        name="genre"
+                        options={genreOptions}
+                        value={genreOptions.filter((opt) =>
+                          formData.genre.includes(opt.value)
                         )}
-                      </div>
+                        onChange={(selectedOptions) =>
+                          setFormData((prev) => ({
+                            ...prev,
+                            genre: selectedOptions.map((opt) => opt.value),
+                          }))
+                        }
+                        placeholder="Select genres..."
+                        className="react-select-container"
+                        classNamePrefix="react-select"
+                      />
                     </Col>
 
-                    <Col md="6">
-                      <Label>Release Year</Label>
+                    <Col md="6" className="mb-3">
+                      <Label>Release Year <span className="text-danger">*</span></Label>
                       <Input
-                        name="release_year"
-                        value={formData.release_year}
+                        name="releaseYear"
+                        value={formData.releaseYear}
                         onChange={handleInput}
-                        placeholder="Release Year"
-                        type="number"
+                        placeholder="e.g., 2024"
+                        type="text"
+                        maxLength={4}
+                        pattern="\d{4}"
                       />
-                      {errors.release_year && (
-                        <span className="text-danger">
-                          {errors.release_year}
-                        </span>
+                      {errors.releaseYear && (
+                        <span className="text-danger">{errors.releaseYear}</span>
                       )}
                     </Col>
-                    <Col md="6">
+
+                    <Col md="6" className="mb-3">
                       <Label>Release Date</Label>
                       <Input
-                        name="release_date"
-                        value={formData.release_date}
+                        name="releaseDate"
+                        value={formData.releaseDate}
                         onChange={handleInput}
-                        placeholder="Release Date"
                         type="date"
                       />
                     </Col>
-                    <Col md="6">
-                      <Label>Role / Character Name </Label>
+
+                    <Col md="6" className="mb-3">
+                      <Label>Role / Character Name</Label>
                       <Input
                         name="role"
                         value={formData.role}
                         onChange={handleInput}
-                        placeholder="Role / Character Name "
+                        placeholder="e.g., Tony Stark"
                         type="text"
+                        maxLength={100}
                       />
                     </Col>
-                    <Col md="6">
+
+                    <Col md="6" className="mb-3">
                       <Label>Role Type</Label>
                       <Input
                         type="select"
-                        name="role_type"
+                        name="roleType"
                         onChange={handleInput}
-                        value={formData.role_type}
+                        value={formData.roleType}
                       >
                         <option value="">Select</option>
-                        <option value="Lead">Lead </option>
-                        <option value="Supporting">Supporting </option>
-                        <option value="Cameo">Cameo </option>
-                        <option value="Special Appearance">
-                          Special Appearance{" "}
-                        </option>
-                        <option value="Voice">Voice </option>
+                        <option value="Lead">Lead</option>
+                        <option value="Supporting">Supporting</option>
+                        <option value="Cameo">Cameo</option>
+                        <option value="Special Appearance">Special Appearance</option>
+                        <option value="Voice">Voice</option>
                       </Input>
                     </Col>
-                    <Col md="6">
+
+                    <Col md="6" className="mb-3">
                       <Label>Languages</Label>
                       <Select
                         isMulti
                         name="languages"
-                        options={languagesOptions}
-                        value={languagesOptions.filter((opt) =>
+                        options={languageOptions}
+                        value={languageOptions.filter((opt) =>
                           formData.languages.includes(opt.value)
                         )}
                         onChange={(selectedOptions) =>
@@ -336,153 +316,154 @@ const AddMoviev = () => {
                             languages: selectedOptions.map((opt) => opt.value),
                           }))
                         }
-                        placeholder="Choose..."
+                        placeholder="Choose languages..."
                       />
-                      {errors.languages && (
-                        <span className="text-danger">{errors.languages}</span>
-                      )}
                     </Col>
-                    <Col md="6">
-                      <Label>Director </Label>
+
+                    <Col md="6" className="mb-3">
+                      <Label>Director</Label>
                       <Input
                         name="director"
                         value={formData.director}
                         onChange={handleInput}
-                        placeholder="Director "
+                        placeholder="Director name"
                         type="text"
+                        maxLength={200}
                       />
                     </Col>
-                    <Col md="6">
-                      <Label>Producer / Production House </Label>
+
+                    <Col md="6" className="mb-3">
+                      <Label>Producer / Production House</Label>
                       <Input
                         name="producer"
                         value={formData.producer}
                         onChange={handleInput}
-                        placeholder="Producer / Production House "
+                        placeholder="Producer or production house"
                         type="text"
+                        maxLength={200}
                       />
                     </Col>
 
-                    <Col md="6">
-                      <Label>Cast (Key Co-stars) </Label>
+                    <Col md="6" className="mb-3">
+                      <Label>Cast (Key Co-stars)</Label>
                       <Input
                         name="cast"
                         value={formData.cast}
                         onChange={handleInput}
-                        placeholder="Cast (Key Co-stars)"
+                        placeholder="Main cast members"
                         type="text"
+                        maxLength={500}
                       />
                     </Col>
 
-                    <Col md="12">
+                    <Col md="12" className="mb-3">
                       <Label>Synopsis / Notes</Label>
                       <Input
                         type="textarea"
                         name="notes"
                         value={formData.notes}
                         onChange={handleInput}
-                        placeholder="Synopsis / Notes"
+                        placeholder="Movie synopsis or additional notes"
+                        rows={4}
+                        maxLength={2000}
                       />
                     </Col>
-                    <Col md="6">
-                      <div className="mb-3">
-                        <Label className="form-label">
-                          {" "}
-                          Poster / Thumbnail
-                        </Label>
-                        <Input
-                          type="file"
-                          name="image"
-                          accept="image/*"
-                          onChange={handleFileChange}
-                        />
-                        {formData.old_image && (
-                          <div className="mt-2">
-                            <img
-                              src={`${process.env.REACT_APP_API_BASE_URL}/section/${formData.old_image}`}
-                              alt="Main"
-                              width="100"
-                              className="rounded border"
-                            />
-                          </div>
-                        )}
-                      </div>
+
+                    <Col md="6" className="mb-3">
+                      <Label>Poster / Thumbnail</Label>
+                      <Input
+                        type="file"
+                        name="image"
+                        accept="image/*"
+                        onChange={handleFileChange}
+                      />
+                      {selectedFile && (
+                        <div className="mt-2">
+                          <small className="text-muted">Selected: {selectedFile.name}</small>
+                        </div>
+                      )}
                     </Col>
 
-                    <Col md="6">
-                      <Label>IMDB Rating</Label>
+                    <Col md="6" className="mb-3">
+                      <Label>IMDB Rating (0-10)</Label>
                       <Input
                         name="rating"
                         value={formData.rating}
                         onChange={handleInput}
-                        placeholder="IMDB Rating"
+                        placeholder="e.g., 8.5"
                         type="number"
+                        step="0.1"
+                        min="0"
+                        max="10"
                       />
                     </Col>
-                    <Col md="6">
-                      <Label>Your Platform Rating</Label>
+
+                    <Col md="6" className="mb-3">
+                      <Label>Your Platform Rating (0-10)</Label>
                       <Input
-                        name="platform_rating"
-                        value={formData.platform_rating}
+                        name="platformRating"
+                        value={formData.platformRating}
                         onChange={handleInput}
-                        placeholder="Your Platform Rating"
+                        placeholder="e.g., 9.0"
                         type="number"
+                        step="0.1"
+                        min="0"
+                        max="10"
                       />
                     </Col>
-                    <Col md="6">
-                      <Label>Awards / Nominations (for this movie) </Label>
+
+                    <Col md="6" className="mb-3">
+                      <Label>Awards / Nominations</Label>
                       <Input
                         name="awards"
                         value={formData.awards}
                         onChange={handleInput}
-                        placeholder="Awards / Nominations (for this movie) "
+                        placeholder="Awards for this movie"
                         type="text"
+                        maxLength={500}
                       />
                     </Col>
-                    <Col md="6">
-                      <Label>Sort Order </Label>
+
+                    <Col md="6" className="mb-3">
+                      <Label>Sort Order</Label>
                       <Input
                         name="sort"
                         value={formData.sort}
                         onChange={handleInput}
-                        placeholder="Sort Order"
+                        placeholder="e.g., 1"
                         type="number"
                       />
                     </Col>
 
-                    <Col md="6">
-                      <Label>Status </Label>
+                    <Col md="6" className="mb-3">
+                      <Label>Moderation Status</Label>
                       <Input
                         type="select"
-                        name="statusnew"
+                        name="moderationState"
                         onChange={handleInput}
-                        value={formData.statusnew}
+                        value={formData.moderationState}
                       >
-                        <option value="">Select</option>
-                        <option value="Draft">
-                          Draft{" "}
-                        </option>
-                        <option value="Published">Published </option>
+                        <option value="PENDING">Pending</option>
+                        <option value="PUBLISHED">Published</option>
+                        <option value="REJECTED">Rejected</option>
                       </Input>
                     </Col>
+
                     {/* ✅ WATCH LINKS SECTION */}
                     <Col md="12" className="mt-4">
                       <h5>Watch Links</h5>
                       {formData.watchLinks.map((link, index) => (
-                        <Row key={index} className="align-items-center mb-2">
+                        <Row key={index} className="align-items-end mb-3">
                           <Col md="3">
                             <Label>Platform Name</Label>
                             <Input
                               type="text"
                               value={link.platform}
-                              placeholder="e.g. Netflix"
+                              placeholder="e.g., Netflix"
                               onChange={(e) =>
-                                handleWatchLinkChange(
-                                  index,
-                                  "platform",
-                                  e.target.value
-                                )
+                                handleWatchLinkChange(index, "platform", e.target.value)
                               }
+                              maxLength={100}
                             />
                           </Col>
                           <Col md="5">
@@ -492,12 +473,9 @@ const AddMoviev = () => {
                               value={link.url}
                               placeholder="https://..."
                               onChange={(e) =>
-                                handleWatchLinkChange(
-                                  index,
-                                  "url",
-                                  e.target.value
-                                )
+                                handleWatchLinkChange(index, "url", e.target.value)
                               }
+                              maxLength={500}
                             />
                           </Col>
                           <Col md="3">
@@ -506,11 +484,7 @@ const AddMoviev = () => {
                               type="select"
                               value={link.type}
                               onChange={(e) =>
-                                handleWatchLinkChange(
-                                  index,
-                                  "type",
-                                  e.target.value
-                                )
+                                handleWatchLinkChange(index, "type", e.target.value)
                               }
                             >
                               <option value="">Select</option>
@@ -520,10 +494,11 @@ const AddMoviev = () => {
                               <option value="Clip">Clip</option>
                             </Input>
                           </Col>
-                          <Col md="1" className="d-flex align-items-end">
+                          <Col md="1">
                             <Button
                               type="button"
                               color="danger"
+                              size="sm"
                               onClick={() => handleRemoveWatchLink(index)}
                             >
                               ×
@@ -534,7 +509,7 @@ const AddMoviev = () => {
                       <Button
                         type="button"
                         color="secondary"
-                        className="mt-2"
+                        size="sm"
                         onClick={handleAddWatchLink}
                       >
                         + Add Watch Link
@@ -542,16 +517,16 @@ const AddMoviev = () => {
                     </Col>
                   </Row>
 
-                  <div className="d-flex gap-2 mt-3">
+                  <div className="d-flex gap-2 mt-4">
                     <Button type="submit" color="primary">
-                      Add Moviev
+                      Add Movie
                     </Button>
                     <Button
                       type="button"
                       color="secondary"
-                      onClick={() => navigate(`/dashboard/list-movie/${celebrityId}`)}
+                      onClick={() => navigate(`/dashboard/fixed-sections/${celebrityId}/movies`)}
                     >
-                      ← Back
+                      Cancel
                     </Button>
                   </div>
                 </form>

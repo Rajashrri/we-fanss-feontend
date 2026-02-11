@@ -93,7 +93,7 @@ const Addtimeline = () => {
     if (res_data?.success === true) {
       toast.success(res_data.message || "Timeline added successfully!");
       setErrors({});
-      navigate(`/dashboard/timeline-list/${celebrityId}`);
+      navigate(`/dashboard/fixed-sections/${celebrityId}/timeline`);
     } else {
       toast.error(res_data?.message || "Failed to add timeline");
     }

@@ -202,7 +202,7 @@ const AddSeries = () => {
       }
 
       toast.success("Series added successfully!");
-      navigate(`/dashboard/list-series/${celebrityId}`);
+      navigate(`/dashboard/fixed-sections/${celebrityId}/series`);
 
       // Reset form
       setFormData({

@@ -797,8 +797,8 @@ const ReferencesList = () => {
   // ========== RENDER ==========
   return (
     <Fragment>
-      <div className="page-content">
-        <FixedSectionTab activeTabId="references" />
+    
+        
         <Container fluid>
           {/* <Breadcrumbs title="References" breadcrumbItems={breadcrumbItems} /> */}
 
@@ -978,7 +978,7 @@ const ReferencesList = () => {
           cancelText="Cancel"
           confirmColor="danger"
         />
-      </div>
+      
     </Fragment>
   );
 };

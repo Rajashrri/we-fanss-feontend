@@ -803,11 +803,8 @@ const TimelineList = () => {
 
   return (
     <Fragment>
-      <div className="page-content">
-        <FixedSectionTab 
-          activeTabId="timeline" 
-          pendingCount={moderationStats.pending}
-        />
+      
+        
         
         <Container fluid>
           <Card
@@ -875,7 +872,7 @@ const TimelineList = () => {
           onConfirm={handleRejectConfirm}
           itemTitle={selectedItem?.title || ''}
         />
-      </div>
+      
     </Fragment>
   );
 };

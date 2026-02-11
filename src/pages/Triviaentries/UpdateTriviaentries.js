@@ -14,25 +14,26 @@ import Select from "react-select";
 import { toast } from "react-toastify";
 import { useParams, useNavigate } from "react-router-dom";
 import {
-  gettriviaentriesCategories,
   getTriviaentriesById,
   updateTriviaentries,
 } from "../../api/triviaentriesApi";
+import { getTriviaTypeOptions } from "../../api/optionsApi";
 
 const UpdateTriviaentries = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const [celebrityId, setCelebrityId] = useState("");
-  const [optionscat, setOptions] = useState([]);
+  const [categoryOptions, setCategoryOptions] = useState([]);
   const [errors, setErrors] = useState({});
+  const [loading, setLoading] = useState(false);
   const [trivia, setTrivia] = useState({
-    category_id: "",
-    category_name: "",
+    categoryId: "",
+    categoryName: "",
     title: "",
     description: "",
     media: null,
-    source_link: "",
-    old_media: "",
+    sourceLink: "",
+    oldMedia: "",
   });
 
   // ✅ Fetch categories and entry data on load
@@ -44,17 +45,20 @@ const UpdateTriviaentries = () => {
   // Fetch category dropdown options
   const fetchCategories = async () => {
     try {
-      const res_data = await gettriviaentriesCategories();
-      if (Array.isArray(res_data.msg)) {
-        const options = res_data.msg.map((item) => ({
-          value: item._id,
-          label: item.name?.trim() || "Unnamed Category",
+      const response = await getTriviaTypeOptions();
+      if (response?.success && Array.isArray(response?.data)) {
+        const options = response.data.map((item) => ({
+          value: item.id,
+          label: item.label,
         }));
-        setOptions(options);
+        setCategoryOptions(options);
+      } else {
+        setCategoryOptions([]);
       }
     } catch (error) {
       console.error("Error fetching categories:", error);
       toast.error("Failed to load categories");
+      setCategoryOptions([]);
     }
   };
 
@@ -62,17 +66,19 @@ const UpdateTriviaentries = () => {
   const fetchTriviaEntry = async () => {
     try {
       const res_data = await getTriviaentriesById(id);
-      if (res_data.msg) {
-        const entry = res_data.msg;
+      
+      const entry = res_data?.data || res_data?.msg;
+      
+      if (entry) {
         setTrivia({
-          category_id: entry.category_id || "",
-          category_name: entry.category_name || "",
+          categoryId: entry.categoryId?._id || entry.categoryId || "",
+          categoryName: entry.categoryName || "",
           title: entry.title || "",
           description: entry.description || "",
-          source_link: entry.source_link || "",
-          old_media: entry.media || "",
+          sourceLink: entry.sourceLink || "",
+          oldMedia: entry.media || "",
         });
-        setCelebrityId(entry.celebrityId);
+        setCelebrityId(entry.celebrityId?._id || entry.celebrityId);
       } else {
         toast.error("Failed to load trivia entry");
       }
@@ -86,6 +92,10 @@ const UpdateTriviaentries = () => {
   const handleInput = (e) => {
     const { name, value } = e.target;
     setTrivia((prev) => ({ ...prev, [name]: value }));
+    // Clear error when user types
+    if (errors[name]) {
+      setErrors((prev) => ({ ...prev, [name]: "" }));
+    }
   };
 
   // Handle file change
@@ -99,9 +109,9 @@ const UpdateTriviaentries = () => {
     e.preventDefault();
 
     const newErrors = {};
-    if (!trivia.title) newErrors.title = "Title is required";
-    if (!trivia.category_id) newErrors.category_id = "Category is required";
-    if (!trivia.description) newErrors.description = "Description is required";
+    if (!trivia.title?.trim()) newErrors.title = "Title is required";
+    if (!trivia.categoryId) newErrors.categoryId = "Category is required";
+    if (!trivia.description?.trim()) newErrors.description = "Description is required";
 
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
@@ -109,20 +119,26 @@ const UpdateTriviaentries = () => {
     }
 
     try {
-      const adminid = localStorage.getItem("adminid");
+      setLoading(true);
+      
       const formData = new FormData();
-      formData.append("category_id", trivia.category_id);
-      formData.append("category_name", trivia.category_name);
-      formData.append("title", trivia.title);
-      formData.append("description", trivia.description);
-      formData.append("source_link", trivia.source_link);
-      formData.append("updatedBy", adminid);
-      if (trivia.media) formData.append("media", trivia.media);
+      formData.append("categoryId", trivia.categoryId);
+      formData.append("categoryName", trivia.categoryName);
+      formData.append("title", trivia.title.trim());
+      formData.append("description", trivia.description.trim());
+      
+      if (trivia.sourceLink?.trim()) {
+        formData.append("sourceLink", trivia.sourceLink.trim());
+      }
+      
+      if (trivia.media) {
+        formData.append("media", trivia.media);
+      }
 
       const res_data = await updateTriviaentries(id, formData);
 
       if (res_data.success === false) {
-        toast.error(res_data.msg || "Failed to update entry");
+        toast.error(res_data.message || "Failed to update entry");
         return;
       }
 
@@ -130,7 +146,9 @@ const UpdateTriviaentries = () => {
       navigate(`/dashboard/triviaentries-list/${celebrityId}`);
     } catch (error) {
       console.error("Update Trivia Entry Error:", error);
-      toast.error("Something went wrong!");
+      toast.error(error.message || "Something went wrong!");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -149,105 +167,139 @@ const UpdateTriviaentries = () => {
                   <Row>
                     {/* Category Select */}
                     <Col md="6">
-                      <Label className="form-label">Trivia Category</Label>
-                      <Select
-                        options={optionscat}
-                        name="category_id"
-                        value={
-                          optionscat.find(
-                            (option) => option.value === trivia.category_id
-                          ) || null
-                        }
-                        onChange={(selectedOption) => {
-                          setTrivia((prev) => ({
-                            ...prev,
-                            category_id: selectedOption
-                              ? selectedOption.value
-                              : "",
-                            category_name: selectedOption
-                              ? selectedOption.label
-                              : "",
-                          }));
-                        }}
-                        isClearable
-                        placeholder="Select category..."
-                      />
-                      {errors.category_id && (
-                        <span className="text-danger">
-                          {errors.category_id}
-                        </span>
-                      )}
+                      <div className="mb-3">
+                        <Label className="form-label">
+                          Trivia Category <span className="text-danger">*</span>
+                        </Label>
+                        <Select
+                          options={categoryOptions}
+                          name="categoryId"
+                          value={
+                            categoryOptions.find(
+                              (option) => option.value === trivia.categoryId
+                            ) || null
+                          }
+                          onChange={(selectedOption) => {
+                            setTrivia((prev) => ({
+                              ...prev,
+                              categoryId: selectedOption?.value || "",
+                              categoryName: selectedOption?.label || "",
+                            }));
+                            // Clear error
+                            if (errors.categoryId) {
+                              setErrors((prev) => ({ ...prev, categoryId: "" }));
+                            }
+                          }}
+                          isClearable
+                          placeholder="Select category..."
+                          isDisabled={loading}
+                        />
+                        {errors.categoryId && (
+                          <span className="text-danger">
+                            {errors.categoryId}
+                          </span>
+                        )}
+                      </div>
                     </Col>
 
                     {/* Title */}
                     <Col md="6">
-                      <Label className="form-label">Title</Label>
-                      <Input
-                        name="title"
-                        value={trivia.title}
-                        onChange={handleInput}
-                        placeholder="Enter title"
-                      />
-                      {errors.title && (
-                        <span className="text-danger">{errors.title}</span>
-                      )}
+                      <div className="mb-3">
+                        <Label className="form-label">
+                          Title <span className="text-danger">*</span>
+                        </Label>
+                        <Input
+                          name="title"
+                          value={trivia.title}
+                          onChange={handleInput}
+                          placeholder="Enter title"
+                          disabled={loading}
+                        />
+                        {errors.title && (
+                          <span className="text-danger">{errors.title}</span>
+                        )}
+                      </div>
                     </Col>
 
                     {/* Description */}
                     <Col md="12">
-                      <Label className="form-label">Description</Label>
-                      <Input
-                        type="textarea"
-                        rows="4"
-                        name="description"
-                        value={trivia.description}
-                        onChange={handleInput}
-                        placeholder="Enter description"
-                      />
-                      {errors.description && (
-                        <span className="text-danger">
-                          {errors.description}
-                        </span>
-                      )}
+                      <div className="mb-3">
+                        <Label className="form-label">
+                          Description <span className="text-danger">*</span>
+                        </Label>
+                        <Input
+                          type="textarea"
+                          rows="4"
+                          name="description"
+                          value={trivia.description}
+                          onChange={handleInput}
+                          placeholder="Enter description"
+                          disabled={loading}
+                        />
+                        {errors.description && (
+                          <span className="text-danger">
+                            {errors.description}
+                          </span>
+                        )}
+                      </div>
                     </Col>
 
                     {/* Media */}
                     <Col md="6">
-                      <Label className="form-label">Media (optional)</Label>
-                      <Input
-                        type="file"
-                        name="media"
-                        accept="image/*,video/*"
-                        onChange={handleFileChange}
-                      />
-                      {trivia.old_media && (
-                        <div className="mt-2">
-                          <img
-                            src={`${process.env.REACT_APP_API_BASE_URL}/triviaentries/${trivia.old_media}`}
-                            alt="Old Media"
-                            width="120"
-                            className="rounded border"
-                          />
-                        </div>
-                      )}
+                      <div className="mb-3">
+                        <Label className="form-label">Media (optional)</Label>
+                        <Input
+                          type="file"
+                          name="media"
+                          accept="image/*,video/*"
+                          onChange={handleFileChange}
+                          disabled={loading}
+                        />
+                        {trivia.oldMedia && (
+                          <div className="mt-2">
+                            <img
+                              src={`${process.env.REACT_APP_API_BASE_URL}/triviaentries/${trivia.oldMedia}`}
+                              alt="Current Media"
+                              width="120"
+                              className="rounded border"
+                            />
+                          </div>
+                        )}
+                        {trivia.media && (
+                          <small className="text-success d-block mt-1">
+                            New file selected: {trivia.media.name}
+                          </small>
+                        )}
+                      </div>
                     </Col>
 
                     {/* Source Link */}
                     <Col md="6">
-                      <Label className="form-label">
-                        Source Link (optional)
-                      </Label>
-                      <Input
-                        name="source_link"
-                        value={trivia.source_link}
-                        onChange={handleInput}
-                        placeholder="Enter source link"
-                      />
+                      <div className="mb-3">
+                        <Label className="form-label">
+                          Source Link (optional)
+                        </Label>
+                        <Input
+                          name="sourceLink"
+                          value={trivia.sourceLink}
+                          onChange={handleInput}
+                          placeholder="Enter source link"
+                          disabled={loading}
+                        />
+                      </div>
                     </Col>
                   </Row>
+                  
                   <div className="d-flex gap-2 mt-3">
-                    <Button type="submit" color="primary">
-                      Update Trivia Entry
+                    <Button type="submit" color="primary" disabled={loading}>
+                      {loading ? (
+                        <>
+                          <span className="spinner-border spinner-border-sm me-2" />
+                          Updating...
+                        </>
+                      ) : (
+                        "Update Trivia Entry"
+                      )}
                     </Button>
                     <Button
                       type="button"
@@ -255,6 +307,7 @@ const UpdateTriviaentries = () => {
                       onClick={() =>
                         navigate(`/dashboard/triviaentries-list/${celebrityId}`)
                       }
+                      disabled={loading}
                     >
                       ← Back
                     </Button>

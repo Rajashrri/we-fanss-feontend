@@ -827,8 +827,8 @@ const RelatedPersonalitiesList = () => {
   // ========== RENDER ==========
   return (
     <Fragment>
-      <div className="page-content">
-        <FixedSectionTab activeTabId="related" />
+     
+        
         <Container fluid>
           {/* <Breadcrumbs
             title="Related Personalities"
@@ -1052,7 +1052,7 @@ const RelatedPersonalitiesList = () => {
           cancelText="Cancel"
           confirmColor="danger"
         />
-      </div>
+      
     </Fragment>
   );
 };

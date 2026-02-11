@@ -1,3 +1,4 @@
+// src/pages/TriviaEntries/TriviaEntriesList.jsx
 import React, { Fragment, useState, useEffect } from "react";
 import {
   Card,
@@ -19,19 +20,22 @@ import {
   usePagination,
 } from "react-table";
 import PropTypes from "prop-types";
-import Breadcrumbs from "../../components/Common/Breadcrumb";
-import { Link, useParams, useNavigate } from "react-router-dom";
+import { Link, useParams, useSearchParams } from "react-router-dom";
 import { toast } from "react-toastify";
-import { Plus, Search, Pencil, Trash } from "lucide-react";
+import { Plus, Search, Pencil, Trash, Check, X } from "lucide-react";
 import {
   getTriviaentries,
-  gettriviaentriesCategories,
   updateTriviaentriesStatus,
   deleteTriviaentries,
 } from "../../api/triviaentriesApi";
 import { getCelebratyById } from "../../api/celebratyApi";
-import FixedSectionTab from "../Section/FixedSectionTab";
+import { getTriviaTypeOptions } from "../../api/optionsApi";
+import { publishItem, rejectItem } from "../../api/moderationApi";
 import DeleteConfirmModal from "../../components/Modals/DeleteModal";
+import RejectReasonModal from "../../components/Modals/RejectReasonModal";
+import ModerationFilter from "../../components/Common/ModerationFilter";
+import ModerationBadge from "../../components/Common/ModerationBadge";
+import { formatDate } from "../../utils/dateUtils";
 
 // ========================================
 // GLOBAL FILTER COMPONENT
@@ -49,7 +53,7 @@ function GlobalFilter({
   }, 200);
 
   return (
-    <Col md={4}>
+    <Col md={3}>
       <div style={{ position: "relative" }}>
         <Input
           type="text"
@@ -95,7 +99,10 @@ const TableContainer = ({
   customPageSize,
   className,
   isGlobalFilter,
-  celebrityId,
+  celebrity,
+  onFilterChange,
+  filters,
+  moderationStats,
 }) => {
   const {
     getTableProps,
@@ -135,8 +142,8 @@ const TableContainer = ({
 
   return (
     <Fragment>
-      {/* HEADER ROW - Page Size, Search, Add Button */}
-      <Row className="mb-3">
+      {/* HEADER ROW - Page Size, Search, Filters, Add Button */}
+      <Row className="mb-3 align-items-center">
         <Col md={2}>
           <select
             className="form-select"
@@ -164,10 +171,16 @@ const TableContainer = ({
           />
         )}
 
-        <Col md={6}>
+        <ModerationFilter 
+          filters={filters}
+          onFilterChange={onFilterChange}
+          moderationStats={moderationStats}
+        />
+
+        <Col md={3}>
           <div className="d-flex justify-content-end">
             <Link
-              to={`/dashboard/add-triviaentries/${celebrityId}`}
+              to={`/dashboard/add-triviaentries/${celebrity}`}
               className="theme-btn bg-theme"
               style={{
                 color: "white",
@@ -179,6 +192,7 @@ const TableContainer = ({
                 alignItems: "center",
                 gap: "8px",
                 fontSize: "16px",
+                textDecoration: "none",
               }}
             >
               <Plus size={20} />
@@ -207,6 +221,7 @@ const TableContainer = ({
                       fontSize: "14px",
                       color: "#666",
                       borderBottom: "none",
+                      verticalAlign: "middle",
                     }}
                   >
                     <div {...column.getSortByToggleProps()}>
@@ -247,6 +262,7 @@ const TableContainer = ({
                           padding: "16px",
                           fontSize: "14px",
                           color: "#333",
+                          verticalAlign: "middle",
                         }}
                       >
                         {cell.render("Cell")}
@@ -272,32 +288,34 @@ const TableContainer = ({
         <Row className="justify-content-end align-items-center mt-4">
           <Col className="col-auto">
             <div className="d-flex gap-2 align-items-center">
-              <Button
-                color="light"
+              <button
                 onClick={() => gotoPage(0)}
                 disabled={!canPreviousPage}
-                size="sm"
                 style={{
                   border: "1px solid #e0e0e0",
                   borderRadius: "6px",
                   padding: "6px 12px",
+                  backgroundColor: "white",
+                  cursor: canPreviousPage ? "pointer" : "not-allowed",
+                  opacity: canPreviousPage ? 1 : 0.5,
                 }}
               >
                 {"<<"}
-              </Button>
-              <Button
-                color="light"
+              </button>
+              <button
                 onClick={previousPage}
                 disabled={!canPreviousPage}
-                size="sm"
                 style={{
                   border: "1px solid #e0e0e0",
                   borderRadius: "6px",
                   padding: "6px 12px",
+                  backgroundColor: "white",
+                  cursor: canPreviousPage ? "pointer" : "not-allowed",
+                  opacity: canPreviousPage ? 1 : 0.5,
                 }}
               >
                 {"<"}
-              </Button>
+              </button>
 
               <select
                 className="form-select"
@@ -334,32 +352,34 @@ const TableContainer = ({
                 }}
               />
 
-              <Button
-                color="light"
+              <button
                 onClick={nextPage}
                 disabled={!canNextPage}
-                size="sm"
                 style={{
                   border: "1px solid #e0e0e0",
                   borderRadius: "6px",
                   padding: "6px 12px",
+                  backgroundColor: "white",
+                  cursor: canNextPage ? "pointer" : "not-allowed",
+                  opacity: canNextPage ? 1 : 0.5,
                 }}
               >
                 {">"}
-              </Button>
-              <Button
-                color="light"
+              </button>
+              <button
                 onClick={() => gotoPage(pageCount - 1)}
                 disabled={!canNextPage}
-                size="sm"
                 style={{
                   border: "1px solid #e0e0e0",
                   borderRadius: "6px",
                   padding: "6px 12px",
+                  backgroundColor: "white",
+                  cursor: canNextPage ? "pointer" : "not-allowed",
+                  opacity: canNextPage ? 1 : 0.5,
                 }}
               >
                 {">>"}
-              </Button>
+              </button>
             </div>
           </Col>
         </Row>
@@ -374,7 +394,10 @@ TableContainer.propTypes = {
   customPageSize: PropTypes.number,
   className: PropTypes.string,
   isGlobalFilter: PropTypes.bool,
-  celebrityId: PropTypes.string,
+  celebrity: PropTypes.string,
+  onFilterChange: PropTypes.func,
+  filters: PropTypes.object,
+  moderationStats: PropTypes.object,
 };
 
 // ========================================
@@ -382,35 +405,44 @@ TableContainer.propTypes = {
 // ========================================
 const TriviaentriesList = () => {
   const { id } = useParams();
-  const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
 
   // ========== STATE ==========
   const [entries, setEntries] = useState([]);
   const [categoryMap, setCategoryMap] = useState({});
   const [loading, setLoading] = useState(true);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
-  const [deleteId, setDeleteId] = useState(null);
+  const [rejectModalOpen, setRejectModalOpen] = useState(false);
+  const [selectedItem, setSelectedItem] = useState(null);
+  const [actionLoading, setActionLoading] = useState(false);
   const [celebrityName, setCelebrityName] = useState("");
+  const [moderationStats, setModerationStats] = useState({
+    pending: 0,
+    published: 0,
+    rejected: 0,
+  });
 
-  // ========== HELPER FUNCTIONS ==========
-  const formatDate = (dateString) => {
-    if (!dateString) return "—";
-    return dateString;
-  };
+  const [filters, setFilters] = useState({
+    moderationState: searchParams.get('moderationState') || '',
+    status: searchParams.get('status') || '',
+  });
 
   // ========== API CALLS ==========
   const fetchCategories = async () => {
     try {
-      const data = await gettriviaentriesCategories();
-      const categoryData = Array.isArray(data?.msg)
-        ? data.msg.reduce((acc, item) => {
-            if (item?._id && item?.name) {
-              acc[item._id] = item.name;
-            }
-            return acc;
-          }, {})
-        : {};
-      setCategoryMap(categoryData);
+      const response = await getTriviaTypeOptions();
+      
+      if (response?.success && Array.isArray(response?.data)) {
+        const categoryData = response.data.reduce((acc, item) => {
+          if (item?.id && item?.label) {
+            acc[item.id] = item.label;
+          }
+          return acc;
+        }, {});
+        setCategoryMap(categoryData);
+      } else {
+        setCategoryMap({});
+      }
     } catch (error) {
       console.error("Error fetching categories:", error);
       toast.error("Failed to load categories");
@@ -421,16 +453,14 @@ const TriviaentriesList = () => {
   const fetchData = async () => {
     try {
       setLoading(true);
-      const result = await getTriviaentries(id);
+      const result = await getTriviaentries(id, filters);
       
-      // 🔧 Robust data extraction with optional chaining
-      const dataArray = 
-        Array.isArray(result?.data) ? result.data :
-        Array.isArray(result?.msg?.data) ? result.msg.data :
-        Array.isArray(result?.msg) ? result.msg :
-        [];
-
-      setEntries(dataArray);
+      const dataArray = result?.data || [];
+      setEntries(Array.isArray(dataArray) ? dataArray : []);
+      
+      if (result?.meta?.moderationStats) {
+        setModerationStats(result.meta.moderationStats);
+      }
     } catch (error) {
       console.error("Error fetching trivia entries:", error);
       toast.error("Failed to load trivia entries");
@@ -443,14 +473,27 @@ const TriviaentriesList = () => {
   const fetchCelebrityName = async () => {
     try {
       const response = await getCelebratyById(id);
-      if (response?.msg?.name) {
-        setCelebrityName(response.msg.name);
-      } else if (response?.data?.name) {
-        setCelebrityName(response.data.name);
+      if (response?.data?.identityProfile?.name) {
+        setCelebrityName(response.data.identityProfile.name);
       }
     } catch (err) {
       console.error("Error fetching celebrity:", err);
     }
+  };
+
+  const handleFilterChange = (filterName, value) => {
+    const newFilters = {
+      ...filters,
+      [filterName]: value,
+    };
+    
+    setFilters(newFilters);
+    
+    const params = {};
+    if (newFilters.moderationState) params.moderationState = newFilters.moderationState;
+    if (newFilters.status) params.status = newFilters.status;
+    
+    setSearchParams(params);
   };
 
   const handleStatusChange = async (currentStatus, entryId) => {
@@ -460,7 +503,7 @@ const TriviaentriesList = () => {
       const res_data = await updateTriviaentriesStatus(entryId, newStatus);
 
       if (res_data?.success === false) {
-        toast.error(res_data?.msg || "Failed to update status");
+        toast.error(res_data?.message || "Failed to update status");
         return;
       }
 
@@ -472,38 +515,97 @@ const TriviaentriesList = () => {
     }
   };
 
-  const handleDeleteClick = (entryId) => {
-    setDeleteId(entryId);
+  // ✅ PUBLISH BUTTON CLICK
+  const handlePublishClick = async (item) => {
+    if (!item) return;
+
+    try {
+      const response = await publishItem("trivia", item._id);
+
+      if (response.success === false) {
+        toast.error(response.message || "Failed to publish trivia entry");
+        return;
+      }
+
+      toast.success("Trivia entry published successfully");
+      fetchData();
+    } catch (error) {
+      console.error("Error publishing trivia entry:", error);
+      toast.error("Error publishing trivia entry. Please try again!");
+    }
+  };
+
+  // ✅ REJECT BUTTON CLICK - Open modal
+  const handleRejectClick = (item) => {
+    setSelectedItem(item);
+    setRejectModalOpen(true);
+  };
+
+  // ✅ REJECT CONFIRM WITH REASON
+  const handleRejectConfirm = async (reason) => {
+    if (!selectedItem) return;
+
+    try {
+      const response = await rejectItem("trivia", selectedItem._id, {
+        moderationRemark: reason
+      });
+
+      if (response.success === false) {
+        toast.error(response.message || "Failed to reject trivia entry");
+        return;
+      }
+
+      toast.success("Trivia entry rejected successfully");
+      fetchData();
+      setRejectModalOpen(false);
+      setSelectedItem(null);
+    } catch (error) {
+      console.error("Error rejecting trivia entry:", error);
+      toast.error("Error rejecting trivia entry. Please try again!");
+    }
+  };
+
+  // ✅ DELETE BUTTON CLICK
+  const handleDeleteClick = (item) => {
+    setSelectedItem(item);
     setDeleteModalOpen(true);
   };
 
   const handleDeleteConfirm = async () => {
-    if (!deleteId) {
+    if (!selectedItem) {
       toast.error("No ID to delete.");
       return;
     }
 
     try {
-      const data = await deleteTriviaentries(deleteId);
+      setActionLoading(true);
+      const data = await deleteTriviaentries(selectedItem._id);
 
       if (data?.success === false) {
-        toast.error(data?.msg || "Failed to delete entry");
+        toast.error(data?.message || "Failed to delete entry");
         return;
       }
 
       toast.success("Trivia entry deleted successfully");
-      setEntries((prev) => prev.filter((row) => row?._id !== deleteId));
+      setEntries((prev) => prev.filter((row) => row?._id !== selectedItem._id));
       setDeleteModalOpen(false);
-      setDeleteId(null);
+      setSelectedItem(null);
     } catch (error) {
       console.error("Delete error:", error);
       toast.error("Something went wrong while deleting.");
+    } finally {
+      setActionLoading(false);
     }
   };
 
   const handleDeleteCancel = () => {
     setDeleteModalOpen(false);
-    setDeleteId(null);
+    setSelectedItem(null);
+  };
+
+  const handleRejectCancel = () => {
+    setRejectModalOpen(false);
+    setSelectedItem(null);
   };
 
   // ========== EFFECTS ==========
@@ -513,7 +615,7 @@ const TriviaentriesList = () => {
       fetchCategories();
       fetchCelebrityName();
     }
-  }, [id]);
+  }, [id, filters]);
 
   // ========== TABLE COLUMNS ==========
   const columns = [
@@ -536,11 +638,16 @@ const TriviaentriesList = () => {
     },
     {
       Header: "Category",
-      accessor: "category_id",
+      accessor: "categoryId",
       Cell: ({ row }) => {
-        const categoryId = row?.original?.category_id;
-        return categoryMap[categoryId] || "N/A";
+        const categoryId = row?.original?.categoryId?._id || row?.original?.categoryId;
+        return categoryMap[categoryId] || row?.original?.categoryName || "N/A";
       },
+    },
+    {
+      Header: "Moderation",
+      accessor: "moderationState",
+      Cell: ({ value }) => <ModerationBadge state={value} />,
     },
     {
       Header: "Status",
@@ -573,119 +680,166 @@ const TriviaentriesList = () => {
     {
       Header: "Options",
       disableSortBy: true,
-      Cell: ({ row }) => (
-        <div className="d-flex gap-2">
-          <Link
-            to={`/dashboard/update-triviaentries/${row?.original?._id}`}
-            style={{
-              backgroundColor: "#4285F41F",
-              color: "#1E90FF",
-              border: "none",
-              borderRadius: "4px",
-              textDecoration: "none",
-              display: "inline-flex",
-              alignItems: "center",
-              justifyContent: "center",
-              width: "40px",
-              height: "40px",
-            }}
-          >
-            <Pencil size={20} strokeWidth="2" />
-          </Link>
+      Cell: ({ row }) => {
+        const isPending = row?.original?.moderationState?.toLowerCase() === 'pending';
 
-          <Button
-            onClick={() => handleDeleteClick(row?.original?._id)}
-            style={{
-              backgroundColor: "#FFE5E5",
-              color: "#FF5555",
-              border: "none",
-              borderRadius: "6px",
-              padding: "8px 12px",
-              width: "40px",
-              height: "40px",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-            }}
-          >
-            <Trash size={20} color="#BA2526" />
-          </Button>
-        </div>
-      ),
+        return (
+          <div className="d-flex gap-2">
+            {/* PUBLISH BUTTON */}
+            {isPending && (
+              <button
+                onClick={() => handlePublishClick(row.original)}
+                title="Publish"
+                style={{
+                  backgroundColor: "#D4EDDA",
+                  color: "#22C55E",
+                  border: "none",
+                  borderRadius: "6px",
+                  width: "40px",
+                  height: "40px",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  cursor: "pointer",
+                }}
+              >
+                <Check size={20} strokeWidth="2" />
+              </button>
+            )}
+
+            {/* REJECT BUTTON */}
+            {isPending && (
+              <button
+                onClick={() => handleRejectClick(row.original)}
+                title="Reject"
+                style={{
+                  backgroundColor: "#FFE5E5",
+                  color: "#EF4444",
+                  border: "none",
+                  borderRadius: "6px",
+                  width: "40px",
+                  height: "40px",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  cursor: "pointer",
+                }}
+              >
+                <X size={20} strokeWidth="2" />
+              </button>
+            )}
+
+            {/* EDIT BUTTON */}
+            <Link
+              to={`/dashboard/update-triviaentries/${row?.original?._id}`}
+              title="Edit"
+              style={{
+                backgroundColor: "#4285F41F",
+                color: "#1E90FF",
+                border: "none",
+                borderRadius: "4px",
+                textDecoration: "none",
+                display: "inline-flex",
+                alignItems: "center",
+                justifyContent: "center",
+                width: "40px",
+                height: "40px",
+              }}
+            >
+              <Pencil size={20} strokeWidth="2" />
+            </Link>
+
+            {/* DELETE BUTTON */}
+            <Button
+              onClick={() => handleDeleteClick(row?.original)}
+              title="Delete"
+              style={{
+                backgroundColor: "#FFE5E5",
+                color: "#FF5555",
+                border: "none",
+                borderRadius: "6px",
+                padding: "8px 12px",
+                width: "40px",
+                height: "40px",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              <Trash size={20} color="#BA2526" />
+            </Button>
+          </div>
+        );
+      },
     },
-  ];
-
-  // ========== BREADCRUMB ==========
-  const breadcrumbItems = [
-    { title: "Dashboard", link: "/" },
-    { title: "Celebrity List", link: "/dashboard/celebrity-list" },
-    { title: "Trivia Entries", link: "#" },
   ];
 
   // ========== RENDER ==========
   return (
     <Fragment>
-      <div className="page-content">
-        <FixedSectionTab activeTabId="trivia" />
-        <Container fluid>
-          {/* <Breadcrumbs
-            title="Trivia Entries"
-            breadcrumbItems={breadcrumbItems}
-          /> */}
+      <Container fluid>
+        <Card
+          style={{
+            border: "none",
+            boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
+            borderRadius: "12px",
+          }}
+        >
+          <CardBody>
+            <div className="d-flex justify-content-between align-items-center mb-4">
+              <h4 className="mb-0" style={{ fontSize: "24px", fontWeight: "500" }}>
+                Trivia Entries List
+                {celebrityName && (
+                  <span style={{ color: "#999", fontWeight: "400", marginLeft: "8px" }}>
+                    — {celebrityName}
+                  </span>
+                )}
+              </h4>
+            </div>
 
-          <Card
-            style={{
-              border: "none",
-              boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
-              borderRadius: "12px",
-            }}
-          >
-            <CardBody>
-              <div className="d-flex justify-content-between align-items-center mb-4">
-                <h4 className="mb-0" style={{ fontSize: "20px", fontWeight: "600" }}>
-                  Trivia Entries List
-                  {celebrityName && (
-                    <span style={{ color: "#999", fontWeight: "400", marginLeft: "8px" }}>
-                      — {celebrityName}
-                    </span>
-                  )}
-                </h4>
-
-              
-              </div>
-
-              {loading ? (
-                <div className="text-center py-5">
-                  <div className="spinner-border text-primary" role="status">
-                    <span className="visually-hidden">Loading...</span>
-                  </div>
-                  <p className="mt-2">Loading trivia entries...</p>
+            {loading ? (
+              <div className="text-center py-5">
+                <div className="spinner-border text-primary" role="status">
+                  <span className="visually-hidden">Loading...</span>
                 </div>
-              ) : (
-                <TableContainer
-                  columns={columns}
-                  data={entries}
-                  customPageSize={10}
-                  isGlobalFilter={true}
-                  celebrityId={id}
-                />
-              )}
-            </CardBody>
-          </Card>
-        </Container>
+                <p className="mt-2">Loading trivia entries...</p>
+              </div>
+            ) : (
+              <TableContainer
+                columns={columns}
+                data={entries}
+                customPageSize={10}
+                isGlobalFilter={true}
+                celebrity={id}
+                onFilterChange={handleFilterChange}
+                filters={filters}
+                moderationStats={moderationStats}
+              />
+            )}
+          </CardBody>
+        </Card>
+      </Container>
 
-        {/* ========== DELETE CONFIRMATION MODAL ========== */}
-        <DeleteConfirmModal
-          isOpen={deleteModalOpen}
-          toggle={handleDeleteCancel}
-          onConfirm={handleDeleteConfirm}
-          title="Delete Trivia Entry"
-          message="Are you sure you want to delete this trivia entry? This action cannot be undone."
-          confirmText="Yes, Delete"
-          cancelText="Cancel"
-          confirmColor="danger"
-        />
-      </div>
+      {/* ========== DELETE CONFIRMATION MODAL ========== */}
+      <DeleteConfirmModal
+        isOpen={deleteModalOpen}
+        toggle={handleDeleteCancel}
+        onConfirm={handleDeleteConfirm}
+        title="Delete Trivia Entry"
+        message={`Are you sure you want to delete "${selectedItem?.title || 'this trivia entry'}"?`}
+        confirmText="Yes, Delete"
+        cancelText="Cancel"
+        confirmColor="danger"
+        loading={actionLoading}
+      />
+
+      {/* ========== REJECT REASON MODAL ========== */}
+      <RejectReasonModal
+        isOpen={rejectModalOpen}
+        toggle={handleRejectCancel}
+        onConfirm={handleRejectConfirm}
+        itemTitle={selectedItem?.title || ''}
+      />
     </Fragment>
   );
 };

@@ -1,14 +1,5 @@
 import React, { Fragment, useState, useEffect } from "react";
-import {
-  Card,
-  CardBody,
-  Container,
-  Table,
-  Row,
-  Col,
-  Input,
-  Badge,
-} from "reactstrap";
+import { Card, CardBody, Container, Table, Row, Col, Input } from "reactstrap";
 import {
   useTable,
   useGlobalFilter,
@@ -20,19 +11,30 @@ import {
 } from "react-table";
 import PropTypes from "prop-types";
 import Breadcrumbs from "../../components/Common/Breadcrumb";
-import { Link, useSearchParams } from "react-router-dom"; // ✅ ADDED useSearchParams
+import { Link, useSearchParams } from "react-router-dom";
 import { toast } from "react-toastify";
-import { Plus, Search, Pencil, Trash } from "lucide-react";
+import {
+  Plus,
+  Search,
+  Pencil,
+  Trash,
+  CheckCircle,
+  XCircle,
+} from "lucide-react";
 import {
   getCelebraties,
   deleteCelebraty,
   updateCelebratyStatus,
 } from "../../api/celebratyApi";
+import { publishItem, rejectItem } from "../../api/moderationApi";
 import DeleteConfirmModal from "../../components/Modals/DeleteModal";
+import RejectReasonModal from "../../components/Modals/RejectReasonModal";
+import PrivilegeAccess, { useResourcePermissions } from "../../components/protection/PrivilegeAccess";
+import {
+  PRIVILEGE_RESOURCES,
+  OPERATIONS,
+} from "../../constant/privilegeConstants";
 
-// ========================================
-// GLOBAL FILTER COMPONENT
-// ========================================
 function GlobalFilter({
   preGlobalFilteredRows,
   globalFilter,
@@ -83,9 +85,6 @@ function Filter() {
   return null;
 }
 
-// ========================================
-// TABLE CONTAINER COMPONENT
-// ========================================
 const TableContainer = ({
   columns,
   data,
@@ -94,6 +93,7 @@ const TableContainer = ({
   isGlobalFilter,
   onFilterChange,
   filters,
+  permissions,
 }) => {
   const {
     getTableProps,
@@ -131,9 +131,19 @@ const TableContainer = ({
 
   const { pageIndex, pageSize } = state;
 
+  if (!permissions.view) {
+    return (
+      <div className="text-center py-5">
+        <i className="bx bx-lock-alt" style={{ fontSize: "48px", color: "#ccc" }}></i>
+        <p className="mt-3" style={{ color: "#666", fontSize: "16px" }}>
+          You don't have permission to view celebrities.
+        </p>
+      </div>
+    );
+  }
+
   return (
     <Fragment>
-      {/* HEADER ROW - Page Size, Search, Filters, Add Button */}
       <Row className="mb-3 align-items-center">
         <Col md={2}>
           <select
@@ -162,12 +172,11 @@ const TableContainer = ({
           />
         )}
 
-        {/* ✅ MODERATION STATE FILTER */}
         <Col md={2}>
           <select
             className="form-select"
             value={filters.moderationState}
-            onChange={(e) => onFilterChange('moderationState', e.target.value)}
+            onChange={(e) => onFilterChange("moderationState", e.target.value)}
             style={{
               borderRadius: "8px",
               border: "1px solid #e0e0e0",
@@ -181,12 +190,11 @@ const TableContainer = ({
           </select>
         </Col>
 
-        {/* ✅ STATUS FILTER */}
         <Col md={2}>
           <select
             className="form-select"
             value={filters.status}
-            onChange={(e) => onFilterChange('status', e.target.value)}
+            onChange={(e) => onFilterChange("status", e.target.value)}
             style={{
               borderRadius: "8px",
               border: "1px solid #e0e0e0",
@@ -199,28 +207,33 @@ const TableContainer = ({
           </select>
         </Col>
 
-        <Col md={3}>
-          <div className="d-flex justify-content-end">
-            <Link
-              to="/dashboard/add-celebrity"
-              className="theme-btn bg-theme"
-              style={{
-                textDecoration: "none",
-                display: "inline-flex",
-                alignItems: "center",
-                gap: "8px",
-              }}
-            >
-              <Plus size={20} />
-              Add Celebrity
-            </Link>
-          </div>
-        </Col>
+        {permissions.add && (
+          <Col md={3}>
+            <div className="d-flex justify-content-end">
+              <Link
+                to="/dashboard/add-celebrity"
+                className="theme-btn bg-theme"
+                style={{
+                  textDecoration: "none",
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: "8px",
+                }}
+              >
+                <Plus size={20} />
+                Add Celebrity
+              </Link>
+            </div>
+          </Col>
+        )}
       </Row>
 
-      {/* TABLE */}
       <div className="table-responsive react-table">
-        <Table {...getTableProps()} className={className} style={{ borderCollapse: "separate", borderSpacing: "0" }}>
+        <Table
+          {...getTableProps()}
+          className={className}
+          style={{ borderCollapse: "separate", borderSpacing: "0" }}
+        >
           <thead style={{ backgroundColor: "#F5F5F5" }}>
             {headerGroups.map((headerGroup) => (
               <tr {...headerGroup.getHeaderGroupProps()} key={headerGroup.id}>
@@ -295,7 +308,6 @@ const TableContainer = ({
         </Table>
       </div>
 
-      {/* PAGINATION */}
       {page.length > 0 && (
         <Row className="justify-content-end align-items-center mt-4">
           <Col className="col-auto">
@@ -408,28 +420,38 @@ TableContainer.propTypes = {
   isGlobalFilter: PropTypes.bool,
   onFilterChange: PropTypes.func,
   filters: PropTypes.object,
+  permissions: PropTypes.object.isRequired,
 };
 
-// ========================================
-// MAIN CELEBRITY LIST COMPONENT
-// ========================================
 const CelebratyList = () => {
-  // ✅ USE URL SEARCH PARAMS
   const [searchParams, setSearchParams] = useSearchParams();
 
-  // ========== STATE ==========
+  const basicPermissions = useResourcePermissions(PRIVILEGE_RESOURCES.CELEBRITY_BASIC_INFO);
+  const professionPermissions = useResourcePermissions(PRIVILEGE_RESOURCES.CELEBRITY_PROFESSION_SECTIONS);
+  const dynamicPermissions = useResourcePermissions(PRIVILEGE_RESOURCES.CELEBRITY_DYNAMIC_SECTIONS);
+  const customPermissions = useResourcePermissions(PRIVILEGE_RESOURCES.CELEBRITY_CUSTOM_SECTIONS);
+
+  const hasAnySectionPermission = 
+    professionPermissions.view || professionPermissions.publish ||
+    dynamicPermissions.view || dynamicPermissions.publish ||
+    customPermissions.view || customPermissions.publish;
+
+  const hasAnyActionPermission = 
+    basicPermissions.edit || basicPermissions.delete || basicPermissions.publish;
+
   const [celebrities, setCelebrities] = useState([]);
   const [loading, setLoading] = useState(true);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [deleteId, setDeleteId] = useState(null);
+  const [rejectModalOpen, setRejectModalOpen] = useState(false);
+  const [rejectItem, setRejectItem] = useState(null);
+  const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
 
-  // ✅ INITIALIZE FILTERS FROM URL
   const [filters, setFilters] = useState({
-    moderationState: searchParams.get('moderationState') || '',
-    status: searchParams.get('status') || '',
+    moderationState: searchParams.get("moderationState") || "",
+    status: searchParams.get("status") || "",
   });
 
-  // ========== HELPER FUNCTIONS ==========
   const formatDate = (dateString) => {
     if (!dateString) return "—";
     const date = new Date(dateString);
@@ -440,7 +462,6 @@ const CelebratyList = () => {
     });
   };
 
-  // ✅ MODERATION BADGE WITH COLOR DOT (NO BACKGROUND)
   const getModerationBadge = (state) => {
     const badges = {
       PENDING: { color: "#FFA500", text: "Pending" },
@@ -451,14 +472,16 @@ const CelebratyList = () => {
     const badge = badges[state] || badges.PENDING;
 
     return (
-      <div style={{ 
-        display: "flex", 
-        alignItems: "center", 
-        gap: "8px",
-        fontSize: "14px",
-        fontWeight: "500",
-        color: "#333"
-      }}>
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: "8px",
+          fontSize: "14px",
+          fontWeight: "500",
+          color: "#333",
+        }}
+      >
         <span
           style={{
             width: "10px",
@@ -473,12 +496,13 @@ const CelebratyList = () => {
     );
   };
 
-  // ========== API CALLS ==========
   const fetchCelebrities = async () => {
     try {
       setLoading(true);
       const result = await getCelebraties(filters);
       const data = result.data || result.msg || result;
+
+      console.log("API Response:", data);
 
       if (Array.isArray(data)) {
         setCelebrities(data);
@@ -487,36 +511,45 @@ const CelebratyList = () => {
       }
     } catch (error) {
       console.error("Error fetching celebrities:", error);
-      toast.error("Failed to load celebrities.");
-      setCelebrities([]);
+
+      if (error.response?.status === 403) {
+        console.warn("User doesn't have permission to view celebrities");
+        setCelebrities([]);
+      } else {
+        toast.error("Failed to load celebrities.");
+        setCelebrities([]);
+      }
     } finally {
       setLoading(false);
     }
   };
 
-  // ✅ FILTER CHANGE HANDLER - UPDATES URL
   const handleFilterChange = (filterName, value) => {
     const newFilters = {
       ...filters,
       [filterName]: value,
     };
-    
+
     setFilters(newFilters);
-    
-    // ✅ UPDATE URL
+
     const params = {};
-    if (newFilters.moderationState) params.moderationState = newFilters.moderationState;
+    if (newFilters.moderationState)
+      params.moderationState = newFilters.moderationState;
     if (newFilters.status) params.status = newFilters.status;
-    
+
     setSearchParams(params);
   };
 
   const handleStatusChange = async (currentStatus, id) => {
-    const newStatus = currentStatus == 1 ? 0 : 1;
+    if (isUpdatingStatus) return;
+
+    const newStatus = Number(currentStatus) === 1 ? 0 : 1;
 
     try {
+      setIsUpdatingStatus(true);
+      
       const response = await updateCelebratyStatus(id, newStatus);
-      const success = response.success || response.status;
+      const success = response.success;
       const message = response.message || response.msg;
 
       if (!success) {
@@ -525,9 +558,71 @@ const CelebratyList = () => {
       }
 
       toast.success(message || "Celebrity status updated successfully");
+      
+      setCelebrities((prev) =>
+        prev.map((celebrity) =>
+          celebrity._id === id
+            ? { ...celebrity, status: response.data.status }
+            : celebrity
+        )
+      );
+      
+    } catch (error) {
+      console.error("Error updating status:", error);
+      toast.error("Error updating status. Please try again!");
+      fetchCelebrities();
+    } finally {
+      setIsUpdatingStatus(false);
+    }
+  };
+
+  const handlePublish = async (id, name) => {
+    try {
+      const response = await publishItem("celebrity", id);
+      const success = response.success || response.status;
+      const message = response.message || response.msg;
+
+      if (!success) {
+        toast.error(message || "Failed to publish celebrity");
+        return;
+      }
+
+      toast.success(message || `${name} published successfully!`);
       fetchCelebrities();
     } catch (error) {
-      toast.error("Error updating status. Please try again!");
+      console.error("Error publishing celebrity:", error);
+      toast.error("Error publishing celebrity. Please try again!");
+    }
+  };
+
+  const handleRejectClick = (celebrity) => {
+    setRejectItem(celebrity);
+    setRejectModalOpen(true);
+  };
+
+  const handleRejectConfirm = async (reason) => {
+    if (!rejectItem) return;
+
+    try {
+      const response = await rejectItem("celebrity", rejectItem._id, {
+        moderationRemark: reason,
+      });
+
+      const success = response.success || response.status;
+      const message = response.message || response.msg;
+
+      if (!success) {
+        toast.error(message || "Failed to reject celebrity");
+        return;
+      }
+
+      toast.success(message || `${rejectItem.name} rejected successfully!`);
+      setRejectModalOpen(false);
+      setRejectItem(null);
+      fetchCelebrities();
+    } catch (error) {
+      console.error("Error rejecting celebrity:", error);
+      toast.error("Error rejecting celebrity. Please try again!");
     }
   };
 
@@ -565,12 +660,12 @@ const CelebratyList = () => {
     setDeleteId(null);
   };
 
-  // ========== EFFECTS ==========
   useEffect(() => {
-    fetchCelebrities();
-  }, [filters]); // ✅ Re-fetch when filters change
+    if (basicPermissions.view || basicPermissions.publish) {
+      fetchCelebrities();
+    }
+  }, [filters, basicPermissions.view, basicPermissions.publish]);
 
-  // ========== TABLE COLUMNS ==========
   const columns = [
     {
       Header: "No",
@@ -585,84 +680,92 @@ const CelebratyList = () => {
     {
       Header: "Celebrity Name",
       accessor: "name",
-      Cell: ({ value }) => <strong style={{ fontWeight: "500" }}>{value}</strong>,
+      Cell: ({ value }) => (
+        <strong style={{ fontWeight: "500" }}>{value}</strong>
+      ),
     },
-    // ✅ MODERATION STATE WITH COLOR DOT
     {
       Header: "Moderation",
       accessor: "moderationState",
       Cell: ({ value }) => getModerationBadge(value),
     },
-    {
-      Header: "Sections",
-      disableSortBy: true,
-      Cell: ({ row }) => {
-        const celebrity = row.original;
+    ...(hasAnySectionPermission
+      ? [
+          {
+            Header: "Sections",
+            disableSortBy: true,
+            Cell: ({ row }) => {
+              const celebrity = row.original;
 
-        return (
-          <div className="d-flex flex-wrap gap-2 align-items-center">
-            {/* Fixed Button */}
-            <Link
-              to={`/dashboard/timeline-list/${celebrity._id}`}
-              style={{
-                backgroundColor: "#F5F5F5",
-                color: "#333",
-                borderRadius: "100px",
-                padding: "8px 16px",
-                fontSize: "14px",
-                fontWeight: "500",
-                border: "none",
-                textDecoration: "none",
-                display: "inline-block",
-              }}
-            >
-              Fixed
-            </Link>
+              return (
+                <div className="d-flex flex-wrap gap-2 align-items-center">
+                  {(professionPermissions.publish || professionPermissions.view) && (
+                    <Link
+                      to={`/dashboard/fixed-sections/${celebrity._id}/timeline`}
+                      style={{
+                        backgroundColor: "#F5F5F5",
+                        color: "#333",
+                        borderRadius: "100px",
+                        padding: "8px 16px",
+                        fontSize: "14px",
+                        fontWeight: "500",
+                        border: "none",
+                        textDecoration: "none",
+                        display: "inline-block",
+                      }}
+                    >
+                      Fixed
+                    </Link>
+                  )}
 
-            {/* Profession Link */}
-            <Link
-              to={`/dashboard/section-template-list/${celebrity._id}`}
-              style={{
-                backgroundColor: "#4285F40D",
-                color: "#4285F4",
-                borderRadius: "100px",
-                padding: "8px 16px",
-                fontSize: "14px",
-                fontWeight: "500",
-                border: "none",
-                textDecoration: "none",
-                display: "inline-block",
-              }}
-            >
-              Profession
-            </Link>
+                  {(dynamicPermissions.publish || dynamicPermissions.view) && (
+                    <Link
+                      to={`/dashboard/section-template-list/${celebrity._id}`}
+                      style={{
+                        backgroundColor: "#4285F40D",
+                        color: "#4285F4",
+                        borderRadius: "100px",
+                        padding: "8px 16px",
+                        fontSize: "14px",
+                        fontWeight: "500",
+                        border: "none",
+                        textDecoration: "none",
+                        display: "inline-block",
+                      }}
+                    >
+                      Profession
+                    </Link>
+                  )}
 
-            {/* Custom Button */}
-            <Link
-              to={`/dashboard/customoption-list/${celebrity._id}`}
-              className="theme-btn bg-theme"
-              style={{
-                color: "white",
-                borderRadius: "100px",
-                padding: "8px 16px",
-                fontSize: "14px",
-                fontWeight: "500",
-                border: "none",
-                textDecoration: "none",
-                display: "inline-block",
-              }}
-            >
-              Custom
-            </Link>
-          </div>
-        );
-      },
-    },
+                  {(customPermissions.publish || customPermissions.view) && (
+                    <Link
+                      to={`/dashboard/customoption-list/${celebrity._id}`}
+                      className="theme-btn bg-theme"
+                      style={{
+                        color: "white",
+                        borderRadius: "100px",
+                        padding: "8px 16px",
+                        fontSize: "14px",
+                        fontWeight: "500",
+                        border: "none",
+                        textDecoration: "none",
+                        display: "inline-block",
+                      }}
+                    >
+                      Custom
+                    </Link>
+                  )}
+                </div>
+              );
+            },
+          },
+        ]
+      : []),
     {
       Header: "Status",
       accessor: "status",
       Cell: ({ row }) => {
-        const isActive = row.original.status == 1;
+        const isActive = Number(row.original.status) === 1;
 
         return (
           <div className="form-check form-switch">
@@ -672,86 +775,145 @@ const CelebratyList = () => {
               id={`switch-${row.original._id}`}
               checked={isActive}
               onChange={() => handleStatusChange(row.original.status, row.original._id)}
+              disabled={!basicPermissions.edit || isUpdatingStatus}
               style={{
                 width: "48px",
                 height: "24px",
-                cursor: "pointer",
+                cursor: basicPermissions.edit && !isUpdatingStatus ? "pointer" : "not-allowed",
                 backgroundColor: isActive ? "#4285F4" : "#ccc",
                 borderColor: isActive ? "#1E90FF" : "#ccc",
+                opacity: isUpdatingStatus ? 0.6 : 1,
               }}
             />
           </div>
         );
       },
     },
-    {
-      Header: "Options",
-      disableSortBy: true,
-      Cell: ({ row }) => {
-        const celebrity = row.original;
+    ...(hasAnyActionPermission
+      ? [
+          {
+            Header: "Options",
+            disableSortBy: true,
+            Cell: ({ row }) => {
+              const celebrity = row.original;
 
-        return (
-          <div className="d-flex gap-2">
-            {/* Edit Button */}
-            <Link
-              to={`/dashboard/update-celebrity/${celebrity._id}`}
-              className="theme-edit-btn"
-              style={{
-                backgroundColor: "#4285F41F",
-                color: "#1E90FF",
-                border: "none",
-                borderRadius: "6px",
-                width: "40px",
-                height: "40px",
-                textDecoration: "none",
-                display: "inline-flex",
-                alignItems: "center",
-                justifyContent: "center",
-              }}
-            >
-              <Pencil size={20} strokeWidth="2" />
-            </Link>
+              return (
+                <div className="d-flex gap-2">
+                  {celebrity.moderationState === "PENDING" && basicPermissions.publish && (
+                    <button
+                      onClick={() => handlePublish(celebrity._id, celebrity.name)}
+                      style={{
+                        backgroundColor: "#E8F5E9",
+                        color: "#4CAF50",
+                        border: "none",
+                        borderRadius: "6px",
+                        padding: "8px 12px",
+                        width: "40px",
+                        height: "40px",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        cursor: "pointer",
+                      }}
+                      title="Publish"
+                    >
+                      <CheckCircle size={20} />
+                    </button>
+                  )}
 
-            {/* Delete Button */}
-            <button
-              onClick={() => handleDeleteClick(celebrity._id)}
-              className="theme-delete-btn"
-              style={{
-                backgroundColor: "#FFE5E5",
-                color: "#FF5555",
-                border: "none",
-                borderRadius: "6px",
-                padding: "8px 12px",
-                width: "40px",
-                height: "40px",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                cursor: "pointer",
-              }}
-            >
-              <Trash size={20} color="#BA2526" />
-            </button>
-          </div>
-        );
-      },
-    },
+                  {celebrity.moderationState === "PENDING" && basicPermissions.publish && (
+                    <button
+                      onClick={() => handleRejectClick(celebrity)}
+                      style={{
+                        backgroundColor: "#FFEBEE",
+                        color: "#F44336",
+                        border: "none",
+                        borderRadius: "6px",
+                        padding: "8px 12px",
+                        width: "40px",
+                        height: "40px",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        cursor: "pointer",
+                      }}
+                      title="Reject"
+                    >
+                      <XCircle size={20} />
+                    </button>
+                  )}
+
+                  {basicPermissions.edit && (
+                    <Link
+                      to={`/dashboard/update-celebrity/${celebrity._id}`}
+                      className="theme-edit-btn"
+                      style={{
+                        backgroundColor: "#4285F41F",
+                        color: "#1E90FF",
+                        border: "none",
+                        borderRadius: "6px",
+                        width: "40px",
+                        height: "40px",
+                        textDecoration: "none",
+                        display: "inline-flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                      }}
+                    >
+                      <Pencil size={20} strokeWidth="2" />
+                    </Link>
+                  )}
+
+                  {basicPermissions.delete && (
+                    <button
+                      onClick={() => handleDeleteClick(celebrity._id)}
+                      className="theme-delete-btn"
+                      style={{
+                        backgroundColor: "#FFE5E5",
+                        color: "#FF5555",
+                        border: "none",
+                        borderRadius: "6px",
+                        padding: "8px 12px",
+                        width: "40px",
+                        height: "40px",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        cursor: "pointer",
+                      }}
+                    >
+                      <Trash size={20} color="#BA2526" />
+                    </button>
+                  )}
+                </div>
+              );
+            },
+          },
+        ]
+      : []),
   ];
 
-  // ========== BREADCRUMB ==========
   const breadcrumbItems = [
     { title: "Dashboard", link: "/" },
     { title: "Celebrity List", link: "#" },
   ];
 
-  // ========== RENDER ==========
   return (
     <Fragment>
       <div className="page-content">
         <Container fluid>
-          <Breadcrumbs title="Celebrities List" breadcrumbItems={breadcrumbItems} />
+          <Breadcrumbs
+            title="Celebrities List"
+            breadcrumbItems={breadcrumbItems}
+          />
 
-          <Card style={{ border: "none", boxShadow: "0 1px 3px rgba(0,0,0,0.1)", borderRadius: "12px" }}>
+          <Card
+            style={{
+              border: "none",
+              boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
+              borderRadius: "12px",
+            }}
+          >
             <CardBody>
               {loading ? (
                 <div className="text-center py-5">
@@ -765,26 +927,37 @@ const CelebratyList = () => {
                   columns={columns}
                   data={celebrities}
                   customPageSize={10}
-                  isGlobalFilter={true}
+                  isGlobalFilter={basicPermissions.view}
                   onFilterChange={handleFilterChange}
                   filters={filters}
+                  permissions={basicPermissions}
                 />
               )}
             </CardBody>
           </Card>
         </Container>
 
-        {/* ========== DELETE CONFIRMATION MODAL ========== */}
-        <DeleteConfirmModal
-          isOpen={deleteModalOpen}
-          toggle={handleDeleteCancel}
-          onConfirm={handleDeleteConfirm}
-          title="Delete Celebrity"
-          message="This action will permanently delete all related data including movies, series, elections, positions, timeline, and trivia entries."
-          confirmText="Yes, Delete"
-          cancelText="Cancel"
-          confirmColor="danger"
-        />
+        {basicPermissions.delete && (
+          <DeleteConfirmModal
+            isOpen={deleteModalOpen}
+            toggle={handleDeleteCancel}
+            onConfirm={handleDeleteConfirm}
+            title="Delete Celebrity"
+            message="This action will permanently delete all related data including movies, series, elections, positions, timeline, and trivia entries."
+            confirmText="Yes, Delete"
+            cancelText="Cancel"
+            confirmColor="danger"
+          />
+        )}
+
+        {basicPermissions.publish && (
+          <RejectReasonModal
+            isOpen={rejectModalOpen}
+            toggle={() => setRejectModalOpen(false)}
+            onConfirm={handleRejectConfirm}
+            itemTitle={rejectItem?.name || ""}
+          />
+        )}
       </div>
     </Fragment>
   );
