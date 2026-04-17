@@ -184,11 +184,11 @@ const SidebarContent = () => {
           </li>
         </PrivilegeAccess>
 
-        {/* Celebrities */}
-        <PrivilegeAccess
-          resource={PRIVILEGE_RESOURCES.CELEBRITY}
-          action={commonActions}
-        >
+      
+         
+
+        {/* Roles - Admin & SuperAdmin Only */}
+        {isAdminOrSuperAdmin && (
           <li>
             <NavLink
               to="/dashboard/celebrity-list"
@@ -200,11 +200,6 @@ const SidebarContent = () => {
               <span>Celebrities</span>
             </NavLink>
           </li>
-        </PrivilegeAccess>
-
-        {/* Roles - Admin & SuperAdmin Only */}
-        {isAdminOrSuperAdmin && (
-         
             <li>
               <NavLink
                 to="/dashboard/role-master"
