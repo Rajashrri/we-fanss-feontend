@@ -209,7 +209,7 @@ const SidebarContent = () => {
                 }
               >
                 <ShieldCheck size={20} />
-                <span>Rolescccccc</span>
+                <span>Roles</span>
               </NavLink>
             </li>
         
