@@ -183,13 +183,8 @@ const SidebarContent = () => {
             </NavLink>
           </li>
         </PrivilegeAccess>
-
-      
-         
-
-        {/* Roles - Admin & SuperAdmin Only */}
-        {isAdminOrSuperAdmin && (
-          <li>
+ {isAdminOrSuperAdmin && (
+      <li>
             <NavLink
               to="/dashboard/celebrity-list"
               className={({ isActive }) =>
@@ -200,6 +195,12 @@ const SidebarContent = () => {
               <span>Celebrities</span>
             </NavLink>
           </li>
+         
+        )}
+
+        {/* Roles - Admin & SuperAdmin Only */}
+        {isAdminOrSuperAdmin && (
+          
             <li>
               <NavLink
                 to="/dashboard/role-master"
