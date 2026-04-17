@@ -186,7 +186,7 @@ const SidebarContent = () => {
 
         {/* Celebrities */}
         <PrivilegeAccess
-          resource={PRIVILEGE_RESOURCES.CELEBRITY}
+          resource={PRIVILEGE_RESOURCES.CELEBRITY_BASIC_INFO}
           action={commonActions}
         >
           <li>
