@@ -44,19 +44,21 @@ const Addprofessionalmaster = () => {
     fetchSectionTemplateOptions();
   }, []);
 
-  const fetchSectionTemplateOptions = async () => {
-    try {
-      const data = await getSectionTemplateOptions();
-      const options = (data.data || data.msg || []).map((item) => ({
-        value: item._id,
-        label: item.title?.trim() || item.name?.trim() || "Untitled",
-      }));
-      setSectionTemplateOptions(options);
-    } catch (err) {
-      console.error("Error fetching section template options:", err);
-      toast.error("Failed to load section templates");
-    }
-  };
+ const fetchSectionTemplateOptions = async () => {
+  try {
+    const data = await getSectionTemplateOptions();
+
+    const options = (data.data || []).map((item) => ({
+      value: item._id,
+      label: item.title?.trim() || item.title,
+    }));
+
+    setSectionTemplateOptions(options);
+  } catch (err) {
+    console.error("Error fetching section template options:", err);
+  }
+};
+
 
   // Handle text input changes
   const handleInput = (e) => {
@@ -288,9 +290,7 @@ const Addprofessionalmaster = () => {
                             ),
                           }))
                         }
-                        placeholder="Select templates..."
-                        className="react-select-container"
-                        classNamePrefix="react-select"
+                        placeholder="Choose..."
                       />
                     </Col>
                   </Row>
