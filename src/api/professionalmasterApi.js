@@ -20,6 +20,7 @@ export const getSectionTemplateOptions = async () => {
   }
 };
 
+
 export const addprofessionalmaster = async (formData) => {
   try {
     const response = await httpClient.post('/professionalmaster', formData, {
