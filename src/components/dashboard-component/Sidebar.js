@@ -15,8 +15,9 @@ import {
   Users,
 } from "lucide-react";
 import PrivilegeAccess from "../protection/PrivilegeAccess";
+
 import {
-  PRIVILEGE_RESOURCES,
+  RESOURCES as PRIVILEGE_RESOURCES,
   OPERATIONS,
 } from "../../constant/privilegeConstants";
 import { useRoleName } from "../../config/store/authStore"; // Import the hook
@@ -183,20 +184,25 @@ const SidebarContent = () => {
             </NavLink>
           </li>
         </PrivilegeAccess>
- {isAdminOrSuperAdmin && (
-      <li>
-            <NavLink
-              to="/dashboard/celebrity-list"
-              className={({ isActive }) =>
-                `waves-effect d-flex align-items-center gap-2 fs-6 hover:text-white ${isActive ? "text-white" : ""}`
-              }
-            >
-              <Star size={20} />
-              <span>Celebrities</span>
-            </NavLink>
-          </li>
-         
-        )}
+
+       <PrivilegeAccess
+  resource={PRIVILEGE_RESOURCES.CELEBRITY}
+  action={commonActions}
+>
+  <li>
+    <NavLink
+      to="/dashboard/celebrity-list"
+      className={({ isActive }) =>
+        `waves-effect d-flex align-items-center gap-2 fs-6 hover:text-white ${isActive ? "text-white" : ""}`
+      }
+    >
+      <Star size={20} />
+      <span>Celebrity###</span>
+    </NavLink>
+  </li>
+</PrivilegeAccess>
+        
+
 
         {/* Roles - Admin & SuperAdmin Only */}
         {isAdminOrSuperAdmin && (
