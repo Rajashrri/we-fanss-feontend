@@ -202,7 +202,17 @@ const SidebarContent = () => {
   </li>
 </PrivilegeAccess>
         
-
+<li>
+    <NavLink
+      to="/dashboard/celebrity-list"
+      className={({ isActive }) =>
+        `waves-effect d-flex align-items-center gap-2 fs-6 hover:text-white ${isActive ? "text-white" : ""}`
+      }
+    >
+      <Star size={20} />
+      <span>{PRIVILEGE_RESOURCES.CELEBRITY}</span>
+    </NavLink>
+  </li>
 
         {/* Roles - Admin & SuperAdmin Only */}
         {isAdminOrSuperAdmin && (

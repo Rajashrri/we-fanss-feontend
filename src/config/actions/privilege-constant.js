@@ -14,7 +14,7 @@ export const RESOURCES = {
   TRIVIA_TYPE: 'triviaType',
   SOCIAL_LINK: 'socialLink',
   GENRE: 'genre',
-  CELEBRITY: 'celebrity.basic',
+  CELEBRITY: 'celebrity',
   SECTION_TYPE: 'sectionType',
   SECTION_TEMPLATE: 'sectionTemplate',
   USERS: 'users'
