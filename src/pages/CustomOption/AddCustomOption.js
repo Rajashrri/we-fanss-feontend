@@ -81,65 +81,73 @@ const Addcustomoption = () => {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleAddSubmit = async (e) => {
-    e.preventDefault();
+const handleAddSubmit = async (e) => {
+  e.preventDefault();
 
-    // Validate form
-    if (!validateForm()) {
-      toast.error("Please fix the errors before submitting");
-      return;
+  if (!validateForm()) {
+    toast.error("Please fix the errors before submitting");
+    return;
+  }
+
+  try {
+    setLoading(true);
+    const adminid = localStorage.getItem("adminid");
+
+    const formData = new FormData();
+
+    // ✅ ALWAYS send title
+    formData.append("title", customoption.title?.trim() || "");
+
+    // ✅ OPTIONAL description
+    formData.append(
+      "description",
+      customoption.description?.trim() || ""
+    );
+
+    // ✅ IMPORTANT
+    formData.append("createdBy", adminid || "");
+    formData.append("celebrity", celebrityId || "");
+
+    // ✅ OPTIONAL media
+    if (customoption.media) {
+      formData.append("media", customoption.media);
     }
 
-    try {
-      setLoading(true);
-      const adminid = localStorage.getItem("adminid");
-
-      const formData = new FormData();
-      formData.append("title", customoption.title.trim());
-      
-      // Description is optional
-      if (customoption.description && customoption.description.trim()) {
-        formData.append("description", customoption.description.trim());
-      }
-      
-      formData.append("createdBy", adminid);
-      
-      // Backend expects 'celebrity' field (not celebrityId)
-      formData.append("celebrity", celebrityId);
-
-      // Media is optional
-      if (customoption.media) {
-        formData.append("media", customoption.media);
-      }
-
-      const res_data = await addcustomoption(formData);
-      console.log("API Response:", res_data);
-
-      if (res_data?.success === true) {
-        toast.success(res_data.message || res_data.msg || "CustomOption added successfully!");
-        setErrors({});
-        navigate(`/dashboard/customoption-list/${celebrityId}`);
-      } else {
-        toast.error(res_data?.message || res_data?.msg || "Failed to add CustomOption");
-      }
-    } catch (error) {
-      console.error("Add CustomOption Error:", error);
-      
-      // Handle validation errors from backend
-      if (error.response?.data?.errors) {
-        const backendErrors = {};
-        error.response.data.errors.forEach((err) => {
-          backendErrors[err.field] = err.message;
-        });
-        setErrors(backendErrors);
-        toast.error("Please fix the validation errors");
-      } else {
-        toast.error(error.response?.data?.message || "Something went wrong!");
-      }
-    } finally {
-      setLoading(false);
+    // 🔥 DEBUG (VERY IMPORTANT)
+    for (let pair of formData.entries()) {
+      console.log(pair[0] + ": ", pair[1]);
     }
-  };
+console.log("celebrityId:", celebrityId);
+    const res_data = await addcustomoption(celebrityId,formData);
+    console.log("API Response:", res_data);
+
+    if (res_data?.success === true) {
+      toast.success(res_data.message || "CustomOption added successfully!");
+      setErrors({});
+      navigate(`/dashboard/customoption-list/${celebrityId}`);
+    } else {
+      toast.error(res_data?.message || "Failed to add CustomOption");
+    }
+  } catch (error) {
+    console.error("Add CustomOption Error:", error);
+
+    // ✅ FIXED backend error handling (Zod format)
+    const backendError = error.response?.data;
+
+    if (backendError?.error?.details) {
+      const backendErrors = {};
+      backendError.error.details.forEach((err) => {
+        backendErrors[err.field] = err.message;
+      });
+      setErrors(backendErrors);
+      toast.error("Please fix the validation errors");
+    } else {
+      toast.error(backendError?.message || "Something went wrong!");
+    }
+  } finally {
+    setLoading(false);
+  }
+};
 
   return (
     <div className="page-content">

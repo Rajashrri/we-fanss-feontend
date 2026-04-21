@@ -15,18 +15,18 @@ import {
   Users,
 } from "lucide-react";
 import PrivilegeAccess from "../protection/PrivilegeAccess";
-
 import {
-  RESOURCES as PRIVILEGE_RESOURCES,
+  PRIVILEGE_RESOURCES,
   OPERATIONS,
 } from "../../constant/privilegeConstants";
 import { useRoleName } from "../../config/store/authStore"; // Import the hook
-
+import { usePrivilegeStore } from "../../config/store/privilegeStore";
 // SidebarContent Component
 const SidebarContent = () => {
   const roleName = useRoleName(); // Get current user's role
-
-  // Common actions to check - if user has ANY of these, show the menu item
+ // ✅ FIX
+console.log("RESOURCE VALUE:", PRIVILEGE_RESOURCES.CELEBRITY_BASIC);
+console.log("ALL RESOURCES:", PRIVILEGE_RESOURCES);  // Common actions to check - if user has ANY of these, show the menu item
   const commonActions = [
     OPERATIONS.VIEW,
     OPERATIONS.ADD,
@@ -185,24 +185,25 @@ const SidebarContent = () => {
           </li>
         </PrivilegeAccess>
 
-       <PrivilegeAccess
-  resource={PRIVILEGE_RESOURCES.CELEBRITY}
+        {/* Celebrity */}
+<PrivilegeAccess
+  resource={PRIVILEGE_RESOURCES.CELEBRITY_BASIC_INFO}
   action={commonActions}
 >
   <li>
     <NavLink
       to="/dashboard/celebrity-list"
       className={({ isActive }) =>
-        `waves-effect d-flex align-items-center gap-2 fs-6 hover:text-white ${isActive ? "text-white" : ""}`
+        `waves-effect d-flex align-items-center gap-2 fs-6 hover:text-white ${
+          isActive ? "text-white" : ""
+        }`
       }
     >
       <Star size={20} />
-      <span>Celebrity###</span>
+      <span>Celebrity</span>
     </NavLink>
   </li>
 </PrivilegeAccess>
-        
-
 
         {/* Roles - Admin & SuperAdmin Only */}
         {isAdminOrSuperAdmin && (

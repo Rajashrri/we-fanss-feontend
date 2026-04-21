@@ -30,6 +30,7 @@ const PrivilegeAccess = ({
   if (typeof action === 'string') {
     hasAccess = hasPermission(resource, action);
   } 
+  
   else if (Array.isArray(action)) {
     hasAccess = requireAll 
       ? action.every(act => hasPermission(resource, act))

@@ -30,9 +30,8 @@ import { publishItem, rejectItem } from "../../api/moderationApi";
 import DeleteConfirmModal from "../../components/Modals/DeleteModal";
 import RejectReasonModal from "../../components/Modals/RejectReasonModal";
 import PrivilegeAccess, { useResourcePermissions } from "../../components/protection/PrivilegeAccess";
-
 import {
-  RESOURCES as PRIVILEGE_RESOURCES,
+  PRIVILEGE_RESOURCES,
   OPERATIONS,
 } from "../../constant/privilegeConstants";
 
@@ -427,7 +426,7 @@ TableContainer.propTypes = {
 const CelebratyList = () => {
   const [searchParams, setSearchParams] = useSearchParams();
 
-  const basicPermissions = useResourcePermissions(PRIVILEGE_RESOURCES.CELEBRITY);
+  const basicPermissions = useResourcePermissions(PRIVILEGE_RESOURCES.CELEBRITY_BASIC_INFO);
   const professionPermissions = useResourcePermissions(PRIVILEGE_RESOURCES.CELEBRITY_PROFESSION_SECTIONS);
   const dynamicPermissions = useResourcePermissions(PRIVILEGE_RESOURCES.CELEBRITY_DYNAMIC_SECTIONS);
   const customPermissions = useResourcePermissions(PRIVILEGE_RESOURCES.CELEBRITY_CUSTOM_SECTIONS);

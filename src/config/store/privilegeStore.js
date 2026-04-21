@@ -26,13 +26,20 @@ export const usePrivilegeStore = create((set, get) => ({
     return get().accessibleModules.includes(module);
   },
 
-  // ✅ FIXED: operations is an object, not an array
-  hasPermission: (resource, operation) => {
-    const permission = get().permissions.find((p) => p.resource === resource);
-    
-    if (!permission) return false;
-    
-    // ✅ Check if operation exists in operations object and is true
-    return permission.operations[operation] === true;
-  },
+hasPermission: (resource, operation) => {
+  const permission = get().permissions.find(
+    (p) =>
+      p.resource?.trim().toLowerCase() ===
+      resource?.trim().toLowerCase()
+  );
+
+  if (!permission) {
+    console.log("❌ RESOURCE NOT FOUND:", resource);
+    return false;
+  }
+
+  console.log("✅ MATCH FOUND:", permission);
+
+  return permission.operations?.[operation] === true;
+},
 }));
