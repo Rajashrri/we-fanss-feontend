@@ -467,65 +467,79 @@ const SectionTemplateList = () => {
         disableSortBy: true,
       },
     ];
+// Add field columns
+section.fields.forEach((field) => {
+  cols.push({
+    Header: field.name || field.key || field.title,
 
-    // Add field columns
-    section.fields.forEach((field) => {
-      cols.push({
-        Header: field.title,
-        accessor: field.title,
-        Cell: ({ value, row }) => {
-          const f = field;
+    // ✅ FIXED ACCESSOR (case-safe + fallback)
+    accessor: (row) => {
+      const key = field.name || field.key || field.title;
 
-          if (f.type === "media" && value) {
-            const imageUrl = getImageUrl(value);
-            return imageUrl ? (
-              <img
-                src={imageUrl}
-                alt={f.title || "Image"}
-                style={{
-                  width: "80px",
-                  height: "80px",
-                  objectFit: "cover",
-                  borderRadius: "8px",
-                  border: "2px solid #e9ecef",
-                }}
-                onError={(e) => {
-                  e.target.src = "/default-image.png";
-                  e.target.onerror = null;
-                }}
-              />
-            ) : (
-              <span className="text-muted">No image</span>
-            );
-          }
+      return (
+        row[key] ??
+        row[key?.toLowerCase()] ??
+        row[key?.toUpperCase()] ??
+        "-"
+      );
+    },
 
-          // ✅ SIMPLE FIX - Rich text ko 300 characters limit
-          if (f.type === "rich_text" && value) {
-            const plainText = value.replace(/<[^>]*>/g, ""); // Remove HTML tags
-            const displayText = plainText.length > 300 
-              ? plainText.substring(0, 300) + "..." 
-              : plainText;
-            
-            return <span>{displayText}</span>;
-          }
+    Cell: ({ value, row }) => {
+      const f = field;
 
-          if (f.type === "Multiple Select" && Array.isArray(value)) {
-            return value.join(", ");
-          }
+      // ✅ IMAGE
+      if (f.type === "media" && value) {
+        const imageUrl = getImageUrl(value);
+        return imageUrl ? (
+          <img
+            src={imageUrl}
+            alt={f.title || "Image"}
+            style={{
+              width: "80px",
+              height: "80px",
+              objectFit: "cover",
+              borderRadius: "8px",
+              border: "2px solid #e9ecef",
+            }}
+            onError={(e) => {
+              e.target.src = "/default-image.png";
+              e.target.onerror = null;
+            }}
+          />
+        ) : (
+          <span className="text-muted">No image</span>
+        );
+      }
 
-          if (f.type === "Single Select" && f.options?.length) {
-            const option = f.options.find((o) => o?._id === value);
-            return option?.label || "";
-          }
+      // ✅ RICH TEXT (300 limit)
+      if (f.type === "rich_text" && value) {
+        const plainText = String(value).replace(/<[^>]*>/g, "");
+        const displayText =
+          plainText.length > 300
+            ? plainText.substring(0, 300) + "..."
+            : plainText;
 
-          return value || "-";
-        },
-      });
-    });
+        return <span>{displayText}</span>;
+      }
 
+      // ✅ MULTIPLE SELECT
+      if (f.type === "Multiple Select" && Array.isArray(value)) {
+        return value.join(", ");
+      }
+
+      // ✅ SINGLE SELECT
+      if (f.type === "Single Select" && f.options?.length) {
+        const option = f.options.find((o) => o?._id === value);
+        return option?.label || "-";
+      }
+
+      return value || "-";
+    },
+  });
+});
     // Add Options column
     cols.push({
-      Header: "Options",
+      Header: "Option",
       disableSortBy: true,
       Cell: ({ row }) => {
         const rowData = row.original;
