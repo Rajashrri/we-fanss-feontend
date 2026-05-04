@@ -51,7 +51,7 @@ const UpdateCelebrityForm = () => {
 
   const [currentStep, setCurrentStep] = useState(1);
   const [completedSteps, setCompletedSteps] = useState([]);
-  
+
   const totalSteps = isAdmin ? 5 : 4;
 
   const stepTitles = {
@@ -59,7 +59,7 @@ const UpdateCelebrityForm = () => {
     2: "Professional Details & Social Links",
     3: "Family & Relationships",
     4: "Gallery & Images",
-    5: "SEO & Admin"
+    5: "SEO & Admin",
   };
 
   const [galleryFiles, setGalleryFiles] = useState([]);
@@ -69,6 +69,7 @@ const UpdateCelebrityForm = () => {
   const [languagesOptions, setLanguageOptions] = useState([]);
   const [professionsOptions, setProfessionsOptions] = useState([]);
   const [socialLinksOptions, setSocialLinksOptions] = useState([]);
+  const [categoryFile, setCategoryFile] = useState(null);
 
   const [tagInput, setTagInput] = useState("");
   const [keywordInput, setKeywordInput] = useState("");
@@ -79,6 +80,10 @@ const UpdateCelebrityForm = () => {
     shortinfo: "",
     biography: "",
     status: "Draft",
+
+    previewCategoryImage: "",
+    old_categoryimage: "",
+    removeOldCategoryImage: false,
     previewImage: "",
     old_image: "",
     removeOldImage: false,
@@ -134,7 +139,9 @@ const UpdateCelebrityForm = () => {
     control: (base, state) => ({
       ...base,
       borderColor: state.isFocused ? "#86b7fe" : "#dee2e6",
-      boxShadow: state.isFocused ? "0 0 0 0.25rem rgba(13, 110, 253, 0.25)" : "none",
+      boxShadow: state.isFocused
+        ? "0 0 0 0.25rem rgba(13, 110, 253, 0.25)"
+        : "none",
       "&:hover": {
         borderColor: state.isFocused ? "#86b7fe" : "#dee2e6",
       },
@@ -188,8 +195,15 @@ const UpdateCelebrityForm = () => {
         previewImage: "",
         removeOldImage: false,
 
+        old_categoryimage: celebrityData.identityProfile?.categoryImage || "",
+
+        previewCategoryImage: "",
+        removeOldCategoryImage: false,
+
         dob: celebrityData.personalDetails?.dob
-          ? new Date(celebrityData.personalDetails.dob).toISOString().split("T")[0]
+          ? new Date(celebrityData.personalDetails.dob)
+              .toISOString()
+              .split("T")[0]
           : "",
         birthplace: celebrityData.personalDetails?.birthplace || "",
         gender: celebrityData.personalDetails?.gender || "",
@@ -198,26 +212,40 @@ const UpdateCelebrityForm = () => {
 
         isAlive: celebrityData.lifeStatus?.isAlive !== false,
         dateOfDeath: celebrityData.lifeStatus?.dateOfDeath
-          ? new Date(celebrityData.lifeStatus.dateOfDeath).toISOString().split("T")[0]
+          ? new Date(celebrityData.lifeStatus.dateOfDeath)
+              .toISOString()
+              .split("T")[0]
           : "",
         placeOfDeath: celebrityData.lifeStatus?.placeOfDeath || "",
         causeOfDeath: celebrityData.lifeStatus?.causeOfDeath || "",
 
         fatherName: celebrityData.familyRelationships?.father?.name || "",
-        showFather: celebrityData.familyRelationships?.father?.showOnPublicProfile || false,
+        showFather:
+          celebrityData.familyRelationships?.father?.showOnPublicProfile ||
+          false,
         motherName: celebrityData.familyRelationships?.mother?.name || "",
-        showMother: celebrityData.familyRelationships?.mother?.showOnPublicProfile || false,
+        showMother:
+          celebrityData.familyRelationships?.mother?.showOnPublicProfile ||
+          false,
         spouses: celebrityData.familyRelationships?.spouses || [],
         children: celebrityData.familyRelationships?.children || [],
         siblings: celebrityData.familyRelationships?.siblings || [],
 
-        professions: extractIds(celebrityData.professionalIdentity?.professions),
-        primaryProfession: extractId(celebrityData.professionalIdentity?.primaryProfession),
+        professions: extractIds(
+          celebrityData.professionalIdentity?.professions,
+        ),
+        primaryProfession: extractId(
+          celebrityData.professionalIdentity?.primaryProfession,
+        ),
         languages: extractIds(celebrityData.professionalIdentity?.languages),
-        primaryLanguage: extractId(celebrityData.professionalIdentity?.primaryLanguage),
-        careerStartYear: celebrityData.professionalIdentity?.careerStartYear || "",
+        primaryLanguage: extractId(
+          celebrityData.professionalIdentity?.primaryLanguage,
+        ),
+        careerStartYear:
+          celebrityData.professionalIdentity?.careerStartYear || "",
         careerEndYear: celebrityData.professionalIdentity?.careerEndYear || "",
-        isCareerOngoing: celebrityData.professionalIdentity?.isCareerOngoing !== false,
+        isCareerOngoing:
+          celebrityData.professionalIdentity?.isCareerOngoing !== false,
 
         currentCity: celebrityData.locationPresence?.currentCity || "",
         knownForRegion: celebrityData.locationPresence?.knownForRegion || [],
@@ -237,7 +265,8 @@ const UpdateCelebrityForm = () => {
         seoKeywords: celebrityData.seoMetadata?.seoKeywords || [],
 
         isFeatured: celebrityData.adminControls?.isFeatured || false,
-        verificationStatus: celebrityData.adminControls?.verificationStatus || "Not Claimed",
+        verificationStatus:
+          celebrityData.adminControls?.verificationStatus || "Not Claimed",
         internalNotes: celebrityData.adminControls?.internalNotes || "",
       });
 
@@ -320,7 +349,8 @@ const UpdateCelebrityForm = () => {
         if (deathDate > today) {
           newErrors.dateOfDeath = "Date of death cannot be in the future";
         } else if (formData.dob && deathDate < dobDate) {
-          newErrors.dateOfDeath = "Date of death cannot be before date of birth";
+          newErrors.dateOfDeath =
+            "Date of death cannot be before date of birth";
         }
       }
     }
@@ -332,7 +362,8 @@ const UpdateCelebrityForm = () => {
 
       formData.socialLinks.forEach((link, index) => {
         if (link.url && link.url.trim() !== "") {
-          const urlPattern = /^(https?:\/\/)?(www\.)?[a-zA-Z0-9_-]+(\.[a-z]{2,})(\/.*)?$/;
+          const urlPattern =
+            /^(https?:\/\/)?(www\.)?[a-zA-Z0-9_-]+(\.[a-z]{2,})(\/.*)?$/;
           if (!urlPattern.test(link.url.trim())) {
             newErrors[`socialLink_${index}`] = "Please enter a valid URL";
           }
@@ -416,7 +447,9 @@ const UpdateCelebrityForm = () => {
   const removeKeyword = (indexToRemove) => {
     setFormData((prev) => ({
       ...prev,
-      seoKeywords: prev.seoKeywords.filter((_, index) => index !== indexToRemove),
+      seoKeywords: prev.seoKeywords.filter(
+        (_, index) => index !== indexToRemove,
+      ),
     }));
   };
 
@@ -433,7 +466,9 @@ const UpdateCelebrityForm = () => {
         if (step === 1 || step === 2) {
           if (!validateStep(step)) {
             allValid = false;
-            toast.error(`Please complete Step ${step}: ${stepTitles[step]} before proceeding`);
+            toast.error(
+              `Please complete Step ${step}: ${stepTitles[step]} before proceeding`,
+            );
             window.scrollTo({ top: 0, behavior: "smooth" });
             return;
           }
@@ -493,7 +528,10 @@ const UpdateCelebrityForm = () => {
       return;
     }
 
-    const allStepsUpToCurrent = Array.from({ length: currentStep }, (_, i) => i + 1);
+    const allStepsUpToCurrent = Array.from(
+      { length: currentStep },
+      (_, i) => i + 1,
+    );
     setCompletedSteps(allStepsUpToCurrent);
 
     try {
@@ -502,10 +540,16 @@ const UpdateCelebrityForm = () => {
       formDataToSend.append("identityProfile[name]", formData.name.trim());
       formDataToSend.append("identityProfile[slug]", formData.slug.trim());
       if (formData.shortinfo) {
-        formDataToSend.append("identityProfile[shortinfo]", formData.shortinfo.trim());
+        formDataToSend.append(
+          "identityProfile[shortinfo]",
+          formData.shortinfo.trim(),
+        );
       }
       if (formData.biography) {
-        formDataToSend.append("identityProfile[biography]", formData.biography.trim());
+        formDataToSend.append(
+          "identityProfile[biography]",
+          formData.biography.trim(),
+        );
       }
       formDataToSend.append("identityProfile[status]", formData.status);
 
@@ -513,33 +557,51 @@ const UpdateCelebrityForm = () => {
         formDataToSend.append("personalDetails[dob]", formData.dob);
       }
       if (formData.birthplace) {
-        formDataToSend.append("personalDetails[birthplace]", formData.birthplace.trim());
+        formDataToSend.append(
+          "personalDetails[birthplace]",
+          formData.birthplace.trim(),
+        );
       }
       if (formData.gender) {
         formDataToSend.append("personalDetails[gender]", formData.gender);
       }
       if (formData.nationality) {
-        formDataToSend.append("personalDetails[nationality]", formData.nationality.trim());
+        formDataToSend.append(
+          "personalDetails[nationality]",
+          formData.nationality.trim(),
+        );
       }
       if (formData.religion) {
-        formDataToSend.append("personalDetails[religion]", formData.religion.trim());
+        formDataToSend.append(
+          "personalDetails[religion]",
+          formData.religion.trim(),
+        );
       }
 
       // ✅ FIXED: Always send lifeStatus fields
       formDataToSend.append("lifeStatus[isAlive]", formData.isAlive.toString());
-      
+
       // ✅ FIXED: Send death fields when isAlive is false
       if (!formData.isAlive) {
         if (formData.dateOfDeath && formData.dateOfDeath.trim() !== "") {
-          formDataToSend.append("lifeStatus[dateOfDeath]", formData.dateOfDeath);
+          formDataToSend.append(
+            "lifeStatus[dateOfDeath]",
+            formData.dateOfDeath,
+          );
           console.log("✅ Death Date Added:", formData.dateOfDeath);
         }
         if (formData.placeOfDeath && formData.placeOfDeath.trim() !== "") {
-          formDataToSend.append("lifeStatus[placeOfDeath]", formData.placeOfDeath.trim());
+          formDataToSend.append(
+            "lifeStatus[placeOfDeath]",
+            formData.placeOfDeath.trim(),
+          );
           console.log("✅ Place of Death Added:", formData.placeOfDeath);
         }
         if (formData.causeOfDeath && formData.causeOfDeath.trim() !== "") {
-          formDataToSend.append("lifeStatus[causeOfDeath]", formData.causeOfDeath.trim());
+          formDataToSend.append(
+            "lifeStatus[causeOfDeath]",
+            formData.causeOfDeath.trim(),
+          );
           console.log("✅ Cause of Death Added:", formData.causeOfDeath);
         }
       }
@@ -553,57 +615,111 @@ const UpdateCelebrityForm = () => {
       console.log("================================");
 
       if (formData.fatherName) {
-        formDataToSend.append("familyRelationships[father][name]", formData.fatherName.trim());
-        formDataToSend.append("familyRelationships[father][showOnPublicProfile]", formData.showFather.toString());
+        formDataToSend.append(
+          "familyRelationships[father][name]",
+          formData.fatherName.trim(),
+        );
+        formDataToSend.append(
+          "familyRelationships[father][showOnPublicProfile]",
+          formData.showFather.toString(),
+        );
       }
       if (formData.motherName) {
-        formDataToSend.append("familyRelationships[mother][name]", formData.motherName.trim());
-        formDataToSend.append("familyRelationships[mother][showOnPublicProfile]", formData.showMother.toString());
+        formDataToSend.append(
+          "familyRelationships[mother][name]",
+          formData.motherName.trim(),
+        );
+        formDataToSend.append(
+          "familyRelationships[mother][showOnPublicProfile]",
+          formData.showMother.toString(),
+        );
       }
-      
+
       if (formData.spouses.length > 0) {
-        formDataToSend.append("familyRelationships[spouses]", JSON.stringify(formData.spouses));
+        formDataToSend.append(
+          "familyRelationships[spouses]",
+          JSON.stringify(formData.spouses),
+        );
       }
       if (formData.children.length > 0) {
-        formDataToSend.append("familyRelationships[children]", JSON.stringify(formData.children));
+        formDataToSend.append(
+          "familyRelationships[children]",
+          JSON.stringify(formData.children),
+        );
       }
       if (formData.siblings.length > 0) {
-        formDataToSend.append("familyRelationships[siblings]", JSON.stringify(formData.siblings));
+        formDataToSend.append(
+          "familyRelationships[siblings]",
+          JSON.stringify(formData.siblings),
+        );
       }
 
-      formDataToSend.append("professionalIdentity[professions]", JSON.stringify(formData.professions));
-      
+      formDataToSend.append(
+        "professionalIdentity[professions]",
+        JSON.stringify(formData.professions),
+      );
+
       const primaryProf = formData.primaryProfession || formData.professions[0];
       if (primaryProf) {
-        formDataToSend.append("professionalIdentity[primaryProfession]", primaryProf);
+        formDataToSend.append(
+          "professionalIdentity[primaryProfession]",
+          primaryProf,
+        );
       }
-      
+
       if (formData.languages.length > 0) {
-        formDataToSend.append("professionalIdentity[languages]", JSON.stringify(formData.languages));
+        formDataToSend.append(
+          "professionalIdentity[languages]",
+          JSON.stringify(formData.languages),
+        );
       }
       if (formData.primaryLanguage) {
-        formDataToSend.append("professionalIdentity[primaryLanguage]", formData.primaryLanguage);
+        formDataToSend.append(
+          "professionalIdentity[primaryLanguage]",
+          formData.primaryLanguage,
+        );
       }
       if (formData.careerStartYear) {
-        formDataToSend.append("professionalIdentity[careerStartYear]", formData.careerStartYear.toString());
+        formDataToSend.append(
+          "professionalIdentity[careerStartYear]",
+          formData.careerStartYear.toString(),
+        );
       }
       if (formData.careerEndYear && !formData.isCareerOngoing) {
-        formDataToSend.append("professionalIdentity[careerEndYear]", formData.careerEndYear.toString());
+        formDataToSend.append(
+          "professionalIdentity[careerEndYear]",
+          formData.careerEndYear.toString(),
+        );
       }
-      formDataToSend.append("professionalIdentity[isCareerOngoing]", formData.isCareerOngoing.toString());
+      formDataToSend.append(
+        "professionalIdentity[isCareerOngoing]",
+        formData.isCareerOngoing.toString(),
+      );
 
       if (formData.currentCity) {
-        formDataToSend.append("locationPresence[currentCity]", formData.currentCity.trim());
+        formDataToSend.append(
+          "locationPresence[currentCity]",
+          formData.currentCity.trim(),
+        );
       }
       if (formData.knownForRegion.length > 0) {
-        formDataToSend.append("locationPresence[knownForRegion]", JSON.stringify(formData.knownForRegion));
+        formDataToSend.append(
+          "locationPresence[knownForRegion]",
+          JSON.stringify(formData.knownForRegion),
+        );
       }
 
       if (formData.height) {
-        formDataToSend.append("publicAttributes[height]", formData.height.trim());
+        formDataToSend.append(
+          "publicAttributes[height]",
+          formData.height.trim(),
+        );
       }
       if (formData.signatureStyle) {
-        formDataToSend.append("publicAttributes[signatureStyle]", formData.signatureStyle.trim());
+        formDataToSend.append(
+          "publicAttributes[signatureStyle]",
+          formData.signatureStyle.trim(),
+        );
       }
 
       const validSocialLinks = formData.socialLinks
@@ -620,27 +736,55 @@ const UpdateCelebrityForm = () => {
 
       if (isAdmin) {
         if (formData.tags.length > 0) {
-          formDataToSend.append("seoMetadata[tags]", JSON.stringify(formData.tags));
+          formDataToSend.append(
+            "seoMetadata[tags]",
+            JSON.stringify(formData.tags),
+          );
         }
         if (formData.seoMetaTitle) {
-          formDataToSend.append("seoMetadata[seoMetaTitle]", formData.seoMetaTitle.trim());
+          formDataToSend.append(
+            "seoMetadata[seoMetaTitle]",
+            formData.seoMetaTitle.trim(),
+          );
         }
         if (formData.seoMetaDescription) {
-          formDataToSend.append("seoMetadata[seoMetaDescription]", formData.seoMetaDescription.trim());
+          formDataToSend.append(
+            "seoMetadata[seoMetaDescription]",
+            formData.seoMetaDescription.trim(),
+          );
         }
         if (formData.seoKeywords.length > 0) {
-          formDataToSend.append("seoMetadata[seoKeywords]", JSON.stringify(formData.seoKeywords));
+          formDataToSend.append(
+            "seoMetadata[seoKeywords]",
+            JSON.stringify(formData.seoKeywords),
+          );
         }
 
-        formDataToSend.append("adminControls[isFeatured]", formData.isFeatured.toString());
-        formDataToSend.append("adminControls[verificationStatus]", formData.verificationStatus);
+        formDataToSend.append(
+          "adminControls[isFeatured]",
+          formData.isFeatured.toString(),
+        );
+        formDataToSend.append(
+          "adminControls[verificationStatus]",
+          formData.verificationStatus,
+        );
         if (formData.internalNotes) {
-          formDataToSend.append("adminControls[internalNotes]", formData.internalNotes.trim());
+          formDataToSend.append(
+            "adminControls[internalNotes]",
+            formData.internalNotes.trim(),
+          );
         }
       }
 
       if (selectedFile) {
         formDataToSend.append("image", selectedFile);
+      }
+      if (categoryFile) {
+        formDataToSend.append("categoryimage", categoryFile);
+      }
+
+      if (formData.removeOldCategoryImage) {
+        formDataToSend.append("removeOldCategoryImage", "true");
       }
       if (formData.removeOldImage) {
         formDataToSend.append("removeOldImage", "true");
@@ -656,7 +800,7 @@ const UpdateCelebrityForm = () => {
       // ✅ Log all FormData entries for debugging
       console.log("=== FormData Entries ===");
       for (let pair of formDataToSend.entries()) {
-        console.log(pair[0], ':', pair[1]);
+        console.log(pair[0], ":", pair[1]);
       }
       console.log("========================");
 
@@ -702,7 +846,10 @@ const UpdateCelebrityForm = () => {
   return (
     <div className="page-content">
       <Container fluid>
-        <Breadcrumbs title="UPDATE Celebrity" breadcrumbItems={breadcrumbItems} />
+        <Breadcrumbs
+          title="UPDATE Celebrity"
+          breadcrumbItems={breadcrumbItems}
+        />
 
         <Row className="mb-4">
           <Col xl="12">
@@ -717,8 +864,12 @@ const UpdateCelebrityForm = () => {
                       flex: 1,
                       padding: "16px 24px",
                       cursor: "pointer",
-                      backgroundColor: currentStep === 1 ? "#f8f9fa" : "transparent",
-                      borderBottom: currentStep === 1 ? "3px solid #556ee6" : "3px solid transparent",
+                      backgroundColor:
+                        currentStep === 1 ? "#f8f9fa" : "transparent",
+                      borderBottom:
+                        currentStep === 1
+                          ? "3px solid #556ee6"
+                          : "3px solid transparent",
                       transition: "all 0.3s ease",
                       opacity: 1,
                     }}
@@ -729,8 +880,12 @@ const UpdateCelebrityForm = () => {
                           width: "28px",
                           height: "28px",
                           borderRadius: "50%",
-                          backgroundColor: completedSteps.includes(1) ? "#4285F4" : "#e9ecef",
-                          color: completedSteps.includes(1) ? "#ffffff" : "#6c757d",
+                          backgroundColor: completedSteps.includes(1)
+                            ? "#4285F4"
+                            : "#e9ecef",
+                          color: completedSteps.includes(1)
+                            ? "#ffffff"
+                            : "#6c757d",
                           display: "flex",
                           alignItems: "center",
                           justifyContent: "center",
@@ -742,10 +897,18 @@ const UpdateCelebrityForm = () => {
                         {completedSteps.includes(1) ? "✓" : "1"}
                       </div>
                       <div>
-                        <div style={{ fontWeight: currentStep === 1 ? "600" : "normal", fontSize: "14px" }}>
+                        <div
+                          style={{
+                            fontWeight: currentStep === 1 ? "600" : "normal",
+                            fontSize: "14px",
+                          }}
+                        >
                           Basic Info
                         </div>
-                        <small className="text-muted d-none d-md-block" style={{ fontSize: "11px" }}>
+                        <small
+                          className="text-muted d-none d-md-block"
+                          style={{ fontSize: "11px" }}
+                        >
                           Name, DOB, Biography
                         </small>
                       </div>
@@ -758,11 +921,21 @@ const UpdateCelebrityForm = () => {
                     style={{
                       flex: 1,
                       padding: "16px 24px",
-                      cursor: completedSteps.includes(2) || currentStep >= 2 ? "pointer" : "not-allowed",
-                      backgroundColor: currentStep === 2 ? "#f8f9fa" : "transparent",
-                      borderBottom: currentStep === 2 ? "3px solid #556ee6" : "3px solid transparent",
+                      cursor:
+                        completedSteps.includes(2) || currentStep >= 2
+                          ? "pointer"
+                          : "not-allowed",
+                      backgroundColor:
+                        currentStep === 2 ? "#f8f9fa" : "transparent",
+                      borderBottom:
+                        currentStep === 2
+                          ? "3px solid #556ee6"
+                          : "3px solid transparent",
                       transition: "all 0.3s ease",
-                      opacity: completedSteps.includes(2) || currentStep >= 2 ? 1 : 0.5,
+                      opacity:
+                        completedSteps.includes(2) || currentStep >= 2
+                          ? 1
+                          : 0.5,
                     }}
                   >
                     <div className="d-flex align-items-center justify-content-center">
@@ -771,8 +944,12 @@ const UpdateCelebrityForm = () => {
                           width: "28px",
                           height: "28px",
                           borderRadius: "50%",
-                          backgroundColor: completedSteps.includes(2) ? "#4285F4" : "#e9ecef",
-                          color: completedSteps.includes(2) ? "#ffffff" : "#6c757d",
+                          backgroundColor: completedSteps.includes(2)
+                            ? "#4285F4"
+                            : "#e9ecef",
+                          color: completedSteps.includes(2)
+                            ? "#ffffff"
+                            : "#6c757d",
                           display: "flex",
                           alignItems: "center",
                           justifyContent: "center",
@@ -784,10 +961,18 @@ const UpdateCelebrityForm = () => {
                         {completedSteps.includes(2) ? "✓" : "2"}
                       </div>
                       <div>
-                        <div style={{ fontWeight: currentStep === 2 ? "600" : "normal", fontSize: "14px" }}>
+                        <div
+                          style={{
+                            fontWeight: currentStep === 2 ? "600" : "normal",
+                            fontSize: "14px",
+                          }}
+                        >
                           Professional
                         </div>
-                        <small className="text-muted d-none d-md-block" style={{ fontSize: "11px" }}>
+                        <small
+                          className="text-muted d-none d-md-block"
+                          style={{ fontSize: "11px" }}
+                        >
                           Career & Social Links
                         </small>
                       </div>
@@ -800,11 +985,21 @@ const UpdateCelebrityForm = () => {
                     style={{
                       flex: 1,
                       padding: "16px 24px",
-                      cursor: completedSteps.includes(3) || currentStep >= 3 ? "pointer" : "not-allowed",
-                      backgroundColor: currentStep === 3 ? "#f8f9fa" : "transparent",
-                      borderBottom: currentStep === 3 ? "3px solid #556ee6" : "3px solid transparent",
+                      cursor:
+                        completedSteps.includes(3) || currentStep >= 3
+                          ? "pointer"
+                          : "not-allowed",
+                      backgroundColor:
+                        currentStep === 3 ? "#f8f9fa" : "transparent",
+                      borderBottom:
+                        currentStep === 3
+                          ? "3px solid #556ee6"
+                          : "3px solid transparent",
                       transition: "all 0.3s ease",
-                      opacity: completedSteps.includes(3) || currentStep >= 3 ? 1 : 0.5,
+                      opacity:
+                        completedSteps.includes(3) || currentStep >= 3
+                          ? 1
+                          : 0.5,
                     }}
                   >
                     <div className="d-flex align-items-center justify-content-center">
@@ -813,8 +1008,12 @@ const UpdateCelebrityForm = () => {
                           width: "28px",
                           height: "28px",
                           borderRadius: "50%",
-                          backgroundColor: completedSteps.includes(3) ? "#4285F4" : "#e9ecef",
-                          color: completedSteps.includes(3) ? "#ffffff" : "#6c757d",
+                          backgroundColor: completedSteps.includes(3)
+                            ? "#4285F4"
+                            : "#e9ecef",
+                          color: completedSteps.includes(3)
+                            ? "#ffffff"
+                            : "#6c757d",
                           display: "flex",
                           alignItems: "center",
                           justifyContent: "center",
@@ -826,10 +1025,18 @@ const UpdateCelebrityForm = () => {
                         {completedSteps.includes(3) ? "✓" : "3"}
                       </div>
                       <div>
-                        <div style={{ fontWeight: currentStep === 3 ? "600" : "normal", fontSize: "14px" }}>
+                        <div
+                          style={{
+                            fontWeight: currentStep === 3 ? "600" : "normal",
+                            fontSize: "14px",
+                          }}
+                        >
                           Family
                         </div>
-                        <small className="text-muted d-none d-md-block" style={{ fontSize: "11px" }}>
+                        <small
+                          className="text-muted d-none d-md-block"
+                          style={{ fontSize: "11px" }}
+                        >
                           Relations & Spouse
                         </small>
                       </div>
@@ -842,11 +1049,21 @@ const UpdateCelebrityForm = () => {
                     style={{
                       flex: 1,
                       padding: "16px 24px",
-                      cursor: completedSteps.includes(4) || currentStep >= 4 ? "pointer" : "not-allowed",
-                      backgroundColor: currentStep === 4 ? "#f8f9fa" : "transparent",
-                      borderBottom: currentStep === 4 ? "3px solid #556ee6" : "3px solid transparent",
+                      cursor:
+                        completedSteps.includes(4) || currentStep >= 4
+                          ? "pointer"
+                          : "not-allowed",
+                      backgroundColor:
+                        currentStep === 4 ? "#f8f9fa" : "transparent",
+                      borderBottom:
+                        currentStep === 4
+                          ? "3px solid #556ee6"
+                          : "3px solid transparent",
                       transition: "all 0.3s ease",
-                      opacity: completedSteps.includes(4) || currentStep >= 4 ? 1 : 0.5,
+                      opacity:
+                        completedSteps.includes(4) || currentStep >= 4
+                          ? 1
+                          : 0.5,
                     }}
                   >
                     <div className="d-flex align-items-center justify-content-center">
@@ -855,8 +1072,12 @@ const UpdateCelebrityForm = () => {
                           width: "28px",
                           height: "28px",
                           borderRadius: "50%",
-                          backgroundColor: completedSteps.includes(4) ? "#4285F4" : "#e9ecef",
-                          color: completedSteps.includes(4) ? "#ffffff" : "#6c757d",
+                          backgroundColor: completedSteps.includes(4)
+                            ? "#4285F4"
+                            : "#e9ecef",
+                          color: completedSteps.includes(4)
+                            ? "#ffffff"
+                            : "#6c757d",
                           display: "flex",
                           alignItems: "center",
                           justifyContent: "center",
@@ -868,10 +1089,18 @@ const UpdateCelebrityForm = () => {
                         {completedSteps.includes(4) ? "✓" : "4"}
                       </div>
                       <div>
-                        <div style={{ fontWeight: currentStep === 4 ? "600" : "normal", fontSize: "14px" }}>
+                        <div
+                          style={{
+                            fontWeight: currentStep === 4 ? "600" : "normal",
+                            fontSize: "14px",
+                          }}
+                        >
                           Gallery
                         </div>
-                        <small className="text-muted d-none d-md-block" style={{ fontSize: "11px" }}>
+                        <small
+                          className="text-muted d-none d-md-block"
+                          style={{ fontSize: "11px" }}
+                        >
                           Images & Media
                         </small>
                       </div>
@@ -885,11 +1114,21 @@ const UpdateCelebrityForm = () => {
                       style={{
                         flex: 1,
                         padding: "16px 24px",
-                        cursor: completedSteps.includes(5) || currentStep >= 5 ? "pointer" : "not-allowed",
-                        backgroundColor: currentStep === 5 ? "#f8f9fa" : "transparent",
-                        borderBottom: currentStep === 5 ? "3px solid #556ee6" : "3px solid transparent",
+                        cursor:
+                          completedSteps.includes(5) || currentStep >= 5
+                            ? "pointer"
+                            : "not-allowed",
+                        backgroundColor:
+                          currentStep === 5 ? "#f8f9fa" : "transparent",
+                        borderBottom:
+                          currentStep === 5
+                            ? "3px solid #556ee6"
+                            : "3px solid transparent",
                         transition: "all 0.3s ease",
-                        opacity: completedSteps.includes(5) || currentStep >= 5 ? 1 : 0.5,
+                        opacity:
+                          completedSteps.includes(5) || currentStep >= 5
+                            ? 1
+                            : 0.5,
                       }}
                     >
                       <div className="d-flex align-items-center justify-content-center">
@@ -898,8 +1137,12 @@ const UpdateCelebrityForm = () => {
                             width: "28px",
                             height: "28px",
                             borderRadius: "50%",
-                            backgroundColor: completedSteps.includes(5) ? "#4285F4" : "#e9ecef",
-                            color: completedSteps.includes(5) ? "#ffffff" : "#6c757d",
+                            backgroundColor: completedSteps.includes(5)
+                              ? "#4285F4"
+                              : "#e9ecef",
+                            color: completedSteps.includes(5)
+                              ? "#ffffff"
+                              : "#6c757d",
                             display: "flex",
                             alignItems: "center",
                             justifyContent: "center",
@@ -911,10 +1154,18 @@ const UpdateCelebrityForm = () => {
                           {completedSteps.includes(5) ? "✓" : "5"}
                         </div>
                         <div>
-                          <div style={{ fontWeight: currentStep === 5 ? "600" : "normal", fontSize: "14px" }}>
+                          <div
+                            style={{
+                              fontWeight: currentStep === 5 ? "600" : "normal",
+                              fontSize: "14px",
+                            }}
+                          >
                             SEO & Admin
                           </div>
-                          <small className="text-muted d-none d-md-block" style={{ fontSize: "11px" }}>
+                          <small
+                            className="text-muted d-none d-md-block"
+                            style={{ fontSize: "11px" }}
+                          >
                             Meta & Controls
                           </small>
                         </div>
@@ -952,7 +1203,9 @@ const UpdateCelebrityForm = () => {
                           className={errors.name ? "is-invalid" : ""}
                         />
                         {errors.name && (
-                          <div className="invalid-feedback d-block">{errors.name}</div>
+                          <div className="invalid-feedback d-block">
+                            {errors.name}
+                          </div>
                         )}
                       </Col>
 
@@ -969,7 +1222,9 @@ const UpdateCelebrityForm = () => {
                           className={errors.slug ? "is-invalid" : ""}
                         />
                         {errors.slug && (
-                          <div className="invalid-feedback d-block">{errors.slug}</div>
+                          <div className="invalid-feedback d-block">
+                            {errors.slug}
+                          </div>
                         )}
                       </Col>
 
@@ -1022,7 +1277,9 @@ const UpdateCelebrityForm = () => {
                           <option value="Male">Male</option>
                           <option value="Female">Female</option>
                           <option value="Other">Other</option>
-                          <option value="Prefer not to say">Prefer not to say</option>
+                          <option value="Prefer not to say">
+                            Prefer not to say
+                          </option>
                         </Input>
                       </Col>
 
@@ -1064,7 +1321,11 @@ const UpdateCelebrityForm = () => {
                             className="form-check-input"
                             role="switch"
                           />
-                          <Label check for="isAlive" className="form-check-label">
+                          <Label
+                            check
+                            for="isAlive"
+                            className="form-check-label"
+                          >
                             Celebrity is Alive
                           </Label>
                         </div>
@@ -1083,7 +1344,9 @@ const UpdateCelebrityForm = () => {
                               className={errors.dateOfDeath ? "is-invalid" : ""}
                             />
                             {errors.dateOfDeath && (
-                              <div className="invalid-feedback d-block">{errors.dateOfDeath}</div>
+                              <div className="invalid-feedback d-block">
+                                {errors.dateOfDeath}
+                              </div>
                             )}
                           </Col>
 
@@ -1158,7 +1421,7 @@ const UpdateCelebrityForm = () => {
                           options={professionsOptions}
                           styles={customSelectStyles}
                           value={professionsOptions.filter((opt) =>
-                            formData.professions.includes(opt.value)
+                            formData.professions.includes(opt.value),
                           )}
                           onChange={(selectedOptions) => {
                             const selected = selectedOptions
@@ -1180,7 +1443,9 @@ const UpdateCelebrityForm = () => {
                           className={errors.professions ? "is-invalid" : ""}
                         />
                         {errors.professions && (
-                          <div className="text-danger mt-1">{errors.professions}</div>
+                          <div className="text-danger mt-1">
+                            {errors.professions}
+                          </div>
                         )}
                       </Col>
 
@@ -1189,11 +1454,11 @@ const UpdateCelebrityForm = () => {
                         <Select
                           name="primaryProfession"
                           options={professionsOptions.filter((opt) =>
-                            formData.professions.includes(opt.value)
+                            formData.professions.includes(opt.value),
                           )}
                           styles={customSelectStyles}
                           value={professionsOptions.find(
-                            (opt) => opt.value === formData.primaryProfession
+                            (opt) => opt.value === formData.primaryProfession,
                           )}
                           onChange={(selected) => {
                             setFormData((prev) => ({
@@ -1214,7 +1479,7 @@ const UpdateCelebrityForm = () => {
                           options={languagesOptions}
                           styles={customSelectStyles}
                           value={languagesOptions.filter((opt) =>
-                            formData.languages.includes(opt.value)
+                            formData.languages.includes(opt.value),
                           )}
                           onChange={(selectedOptions) => {
                             const selected = selectedOptions
@@ -1234,11 +1499,11 @@ const UpdateCelebrityForm = () => {
                         <Select
                           name="primaryLanguage"
                           options={languagesOptions.filter((opt) =>
-                            formData.languages.includes(opt.value)
+                            formData.languages.includes(opt.value),
                           )}
                           styles={customSelectStyles}
                           value={languagesOptions.find(
-                            (opt) => opt.value === formData.primaryLanguage
+                            (opt) => opt.value === formData.primaryLanguage,
                           )}
                           onChange={(selected) => {
                             setFormData((prev) => ({
@@ -1250,6 +1515,7 @@ const UpdateCelebrityForm = () => {
                           isClearable
                         />
                       </Col>
+                      <Label>Active Years</Label>
 
                       <Col md="6" className="mb-3">
                         <Label>Career Start Year</Label>
@@ -1285,7 +1551,11 @@ const UpdateCelebrityForm = () => {
                               checked={formData.isCareerOngoing}
                               onChange={handleInput}
                             />
-                            <Label check for="isCareerOngoing" className="small">
+                            <Label
+                              check
+                              for="isCareerOngoing"
+                              className="small"
+                            >
                               Ongoing
                             </Label>
                           </div>
@@ -1311,12 +1581,14 @@ const UpdateCelebrityForm = () => {
                           options={knownForRegionOptions}
                           styles={customSelectStyles}
                           value={knownForRegionOptions.filter((opt) =>
-                            formData.knownForRegion.includes(opt.value)
+                            formData.knownForRegion.includes(opt.value),
                           )}
                           onChange={(selected) => {
                             setFormData((prev) => ({
                               ...prev,
-                              knownForRegion: selected ? selected.map((opt) => opt.value) : [],
+                              knownForRegion: selected
+                                ? selected.map((opt) => opt.value)
+                                : [],
                             }));
                           }}
                           placeholder="Select regions..."
@@ -1375,18 +1647,25 @@ const UpdateCelebrityForm = () => {
                           <div>
                             {formData.socialLinks.map((item, index) => {
                               const platformOption = socialLinksOptions.find(
-                                (opt) => opt.value === item.platform
+                                (opt) => opt.value === item.platform,
                               );
 
-                              const availableOptions = socialLinksOptions.filter((option) => {
-                                const isAlreadySelected = formData.socialLinks.some(
-                                  (link, idx) => idx !== index && link.platform === option.value
-                                );
-                                return !isAlreadySelected;
-                              });
+                              const availableOptions =
+                                socialLinksOptions.filter((option) => {
+                                  const isAlreadySelected =
+                                    formData.socialLinks.some(
+                                      (link, idx) =>
+                                        idx !== index &&
+                                        link.platform === option.value,
+                                    );
+                                  return !isAlreadySelected;
+                                });
 
                               return (
-                                <div key={index} className="mb-3 p-3 border rounded">
+                                <div
+                                  key={index}
+                                  className="mb-3 p-3 border rounded"
+                                >
                                   <Row className="g-2 align-items-start">
                                     <Col md="4">
                                       <Label className="small">Platform</Label>
@@ -1395,8 +1674,12 @@ const UpdateCelebrityForm = () => {
                                         styles={customSelectStyles}
                                         value={platformOption}
                                         onChange={(selected) => {
-                                          const updated = [...formData.socialLinks];
-                                          updated[index].platform = selected ? selected.value : "";
+                                          const updated = [
+                                            ...formData.socialLinks,
+                                          ];
+                                          updated[index].platform = selected
+                                            ? selected.value
+                                            : "";
                                           setFormData((prev) => ({
                                             ...prev,
                                             socialLinks: updated,
@@ -1414,7 +1697,9 @@ const UpdateCelebrityForm = () => {
                                         placeholder="https://example.com/profile"
                                         value={item.url || ""}
                                         onChange={(e) => {
-                                          const updated = [...formData.socialLinks];
+                                          const updated = [
+                                            ...formData.socialLinks,
+                                          ];
                                           updated[index].url = e.target.value;
                                           setFormData((prev) => ({
                                             ...prev,
@@ -1423,12 +1708,18 @@ const UpdateCelebrityForm = () => {
                                           if (errors[`socialLink_${index}`]) {
                                             setErrors((prev) => {
                                               const updated = { ...prev };
-                                              delete updated[`socialLink_${index}`];
+                                              delete updated[
+                                                `socialLink_${index}`
+                                              ];
                                               return updated;
                                             });
                                           }
                                         }}
-                                        className={errors[`socialLink_${index}`] ? "is-invalid" : ""}
+                                        className={
+                                          errors[`socialLink_${index}`]
+                                            ? "is-invalid"
+                                            : ""
+                                        }
                                       />
                                       {errors[`socialLink_${index}`] && (
                                         <div className="invalid-feedback d-block">
@@ -1438,13 +1729,17 @@ const UpdateCelebrityForm = () => {
                                     </Col>
 
                                     <Col md="2">
-                                      <Label className="small">Label (Optional)</Label>
+                                      <Label className="small">
+                                        Label (Optional)
+                                      </Label>
                                       <Input
                                         type="text"
                                         placeholder="e.g. Fan Club"
                                         value={item.label || ""}
                                         onChange={(e) => {
-                                          const updated = [...formData.socialLinks];
+                                          const updated = [
+                                            ...formData.socialLinks,
+                                          ];
                                           updated[index].label = e.target.value;
                                           setFormData((prev) => ({
                                             ...prev,
@@ -1454,15 +1749,19 @@ const UpdateCelebrityForm = () => {
                                       />
                                     </Col>
 
-                                    <Col md="1" className="d-flex align-items-end">
+                                    <Col
+                                      md="1"
+                                      className="d-flex align-items-end"
+                                    >
                                       <Button
                                         color="danger"
                                         size="sm"
                                         type="button"
                                         onClick={() => {
-                                          const updated = formData.socialLinks.filter(
-                                            (_, i) => i !== index
-                                          );
+                                          const updated =
+                                            formData.socialLinks.filter(
+                                              (_, i) => i !== index,
+                                            );
                                           setFormData((prev) => ({
                                             ...prev,
                                             socialLinks: updated,
@@ -1487,7 +1786,7 @@ const UpdateCelebrityForm = () => {
                     </Row>
                   )}
 
-{/* STEP 3: FAMILY */}
+                  {/* STEP 3: FAMILY */}
                   {currentStep === 3 && (
                     <Row>
                       <Col md="12" className="mb-3">
@@ -1572,7 +1871,10 @@ const UpdateCelebrityForm = () => {
                         {formData.spouses.length > 0 && (
                           <div>
                             {formData.spouses.map((spouse, index) => (
-                              <div key={index} className="mb-2 p-3 border rounded">
+                              <div
+                                key={index}
+                                className="mb-2 p-3 border rounded"
+                              >
                                 <Row className="g-2">
                                   <Col md="5">
                                     <Input
@@ -1596,7 +1898,8 @@ const UpdateCelebrityForm = () => {
                                       value={spouse.profession}
                                       onChange={(e) => {
                                         const updated = [...formData.spouses];
-                                        updated[index].profession = e.target.value;
+                                        updated[index].profession =
+                                          e.target.value;
                                         setFormData((prev) => ({
                                           ...prev,
                                           spouses: updated,
@@ -1612,14 +1915,19 @@ const UpdateCelebrityForm = () => {
                                         checked={spouse.showOnPublicProfile}
                                         onChange={(e) => {
                                           const updated = [...formData.spouses];
-                                          updated[index].showOnPublicProfile = e.target.checked;
+                                          updated[index].showOnPublicProfile =
+                                            e.target.checked;
                                           setFormData((prev) => ({
                                             ...prev,
                                             spouses: updated,
                                           }));
                                         }}
                                       />
-                                      <Label check for={`spouseShow${index}`} className="small">
+                                      <Label
+                                        check
+                                        for={`spouseShow${index}`}
+                                        className="small"
+                                      >
                                         Public
                                       </Label>
                                     </div>
@@ -1631,7 +1939,7 @@ const UpdateCelebrityForm = () => {
                                       type="button"
                                       onClick={() => {
                                         const updated = formData.spouses.filter(
-                                          (_, i) => i !== index
+                                          (_, i) => i !== index,
                                         );
                                         setFormData((prev) => ({
                                           ...prev,
@@ -1677,7 +1985,10 @@ const UpdateCelebrityForm = () => {
                         {formData.children.length > 0 && (
                           <div>
                             {formData.children.map((child, index) => (
-                              <div key={index} className="mb-2 p-3 border rounded">
+                              <div
+                                key={index}
+                                className="mb-2 p-3 border rounded"
+                              >
                                 <Row className="g-2">
                                   <Col md="5">
                                     <Input
@@ -1701,7 +2012,8 @@ const UpdateCelebrityForm = () => {
                                       value={child.relation}
                                       onChange={(e) => {
                                         const updated = [...formData.children];
-                                        updated[index].relation = e.target.value;
+                                        updated[index].relation =
+                                          e.target.value;
                                         setFormData((prev) => ({
                                           ...prev,
                                           children: updated,
@@ -1716,15 +2028,22 @@ const UpdateCelebrityForm = () => {
                                         id={`childShow${index}`}
                                         checked={child.showOnPublicProfile}
                                         onChange={(e) => {
-                                          const updated = [...formData.children];
-                                          updated[index].showOnPublicProfile = e.target.checked;
+                                          const updated = [
+                                            ...formData.children,
+                                          ];
+                                          updated[index].showOnPublicProfile =
+                                            e.target.checked;
                                           setFormData((prev) => ({
                                             ...prev,
                                             children: updated,
                                           }));
                                         }}
                                       />
-                                      <Label check for={`childShow${index}`} className="small">
+                                      <Label
+                                        check
+                                        for={`childShow${index}`}
+                                        className="small"
+                                      >
                                         Public
                                       </Label>
                                     </div>
@@ -1735,9 +2054,10 @@ const UpdateCelebrityForm = () => {
                                       size="sm"
                                       type="button"
                                       onClick={() => {
-                                        const updated = formData.children.filter(
-                                          (_, i) => i !== index
-                                        );
+                                        const updated =
+                                          formData.children.filter(
+                                            (_, i) => i !== index,
+                                          );
                                         setFormData((prev) => ({
                                           ...prev,
                                           children: updated,
@@ -1782,7 +2102,10 @@ const UpdateCelebrityForm = () => {
                         {formData.siblings.length > 0 && (
                           <div>
                             {formData.siblings.map((sibling, index) => (
-                              <div key={index} className="mb-2 p-3 border rounded">
+                              <div
+                                key={index}
+                                className="mb-2 p-3 border rounded"
+                              >
                                 <Row className="g-2">
                                   <Col md="5">
                                     <Input
@@ -1806,7 +2129,8 @@ const UpdateCelebrityForm = () => {
                                       value={sibling.relation}
                                       onChange={(e) => {
                                         const updated = [...formData.siblings];
-                                        updated[index].relation = e.target.value;
+                                        updated[index].relation =
+                                          e.target.value;
                                         setFormData((prev) => ({
                                           ...prev,
                                           siblings: updated,
@@ -1821,15 +2145,22 @@ const UpdateCelebrityForm = () => {
                                         id={`siblingShow${index}`}
                                         checked={sibling.showOnPublicProfile}
                                         onChange={(e) => {
-                                          const updated = [...formData.siblings];
-                                          updated[index].showOnPublicProfile = e.target.checked;
+                                          const updated = [
+                                            ...formData.siblings,
+                                          ];
+                                          updated[index].showOnPublicProfile =
+                                            e.target.checked;
                                           setFormData((prev) => ({
                                             ...prev,
                                             siblings: updated,
                                           }));
                                         }}
                                       />
-                                      <Label check for={`siblingShow${index}`} className="small">
+                                      <Label
+                                        check
+                                        for={`siblingShow${index}`}
+                                        className="small"
+                                      >
                                         Public
                                       </Label>
                                     </div>
@@ -1840,9 +2171,10 @@ const UpdateCelebrityForm = () => {
                                       size="sm"
                                       type="button"
                                       onClick={() => {
-                                        const updated = formData.siblings.filter(
-                                          (_, i) => i !== index
-                                        );
+                                        const updated =
+                                          formData.siblings.filter(
+                                            (_, i) => i !== index,
+                                          );
                                         setFormData((prev) => ({
                                           ...prev,
                                           siblings: updated,
@@ -1861,7 +2193,7 @@ const UpdateCelebrityForm = () => {
                     </Row>
                   )}
 
-{/* STEP 4: GALLERY */}
+                  {/* STEP 4: GALLERY */}
                   {currentStep === 4 && (
                     <Row>
                       <Col md="12" className="mb-3">
@@ -1878,7 +2210,9 @@ const UpdateCelebrityForm = () => {
                             const file = e.target.files[0];
                             if (file) {
                               if (file.size > 5 * 1024 * 1024) {
-                                toast.error("Image size should be less than 5MB");
+                                toast.error(
+                                  "Image size should be less than 5MB",
+                                );
                                 e.target.value = null;
                                 return;
                               }
@@ -1939,9 +2273,86 @@ const UpdateCelebrityForm = () => {
                           </div>
                         )}
                       </Col>
+                      <Col md="12" className="mb-3">
+                        <Label className="form-label">Category Image</Label>
+
+                        <Input
+                          type="file"
+                          name="categoryimage"
+                          accept="image/*"
+                          onChange={(e) => {
+                            const file = e.target.files[0];
+
+                            if (file) {
+                              if (file.size > 5 * 1024 * 1024) {
+                                toast.error(
+                                  "Image size should be less than 5MB",
+                                );
+                                e.target.value = null;
+                                return;
+                              }
+
+                              setCategoryFile(file);
+
+                              setFormData((prev) => ({
+                                ...prev,
+                                previewCategoryImage: URL.createObjectURL(file),
+                              }));
+                            }
+                          }}
+                        />
+
+                        {(formData.previewCategoryImage ||
+                          formData.old_categoryimage) && (
+                          <div className="mt-3 position-relative d-inline-block">
+                            <img
+                              src={
+                                formData.previewCategoryImage
+                                  ? formData.previewCategoryImage
+                                  : `${API_BASE}${formData.old_categoryimage}`
+                              }
+                              alt="Category Preview"
+                              width="150"
+                              height="150"
+                              className="rounded border"
+                              style={{ objectFit: "cover" }}
+                            />
+
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setCategoryFile(null);
+
+                                setFormData((prev) => ({
+                                  ...prev,
+                                  previewCategoryImage: "",
+                                  old_categoryimage: "",
+                                  removeOldCategoryImage: true,
+                                }));
+                              }}
+                              style={{
+                                position: "absolute",
+                                top: "-8px",
+                                right: "-8px",
+                                background: "red",
+                                color: "white",
+                                border: "none",
+                                borderRadius: "50%",
+                                width: "24px",
+                                height: "24px",
+                                cursor: "pointer",
+                              }}
+                            >
+                              ×
+                            </button>
+                          </div>
+                        )}
+                      </Col>
 
                       <Col md="12" className="mb-3">
-                        <Label className="form-label">Gallery Images (Multiple)</Label>
+                        <Label className="form-label">
+                          Gallery Images (Multiple)
+                        </Label>
                         <div
                           {...getRootProps()}
                           className={`border border-dashed p-4 text-center rounded bg-light ${
@@ -1951,14 +2362,19 @@ const UpdateCelebrityForm = () => {
                         >
                           <input {...getInputProps()} />
                           {isDragActive ? (
-                            <p className="mb-0 text-primary fw-bold">Drop images here...</p>
+                            <p className="mb-0 text-primary fw-bold">
+                              Drop images here...
+                            </p>
                           ) : (
                             <div>
                               <i className="bx bx-cloud-upload display-4 text-muted"></i>
                               <p className="mb-0 text-muted mt-2">
-                                Drag & drop images here, or <strong>click to select</strong>
+                                Drag & drop images here, or{" "}
+                                <strong>click to select</strong>
                               </p>
-                              <p className="text-muted small">Supports: JPG, PNG, GIF</p>
+                              <p className="text-muted small">
+                                Supports: JPG, PNG, GIF
+                              </p>
                             </div>
                           )}
                         </div>
@@ -1966,7 +2382,9 @@ const UpdateCelebrityForm = () => {
                         {/* Old Gallery */}
                         {oldGallery.length > 0 && (
                           <div className="mt-4">
-                            <h6 className="mb-3">Existing Gallery ({oldGallery.length})</h6>
+                            <h6 className="mb-3">
+                              Existing Gallery ({oldGallery.length})
+                            </h6>
                             <div className="d-flex flex-wrap gap-3">
                               {oldGallery.map((file, idx) => (
                                 <div
@@ -1988,7 +2406,9 @@ const UpdateCelebrityForm = () => {
                                   <button
                                     type="button"
                                     onClick={() =>
-                                      setOldGallery((prev) => prev.filter((_, i) => i !== idx))
+                                      setOldGallery((prev) =>
+                                        prev.filter((_, i) => i !== idx),
+                                      )
                                     }
                                     style={{
                                       position: "absolute",
@@ -2044,7 +2464,7 @@ const UpdateCelebrityForm = () => {
                                     onClick={(e) => {
                                       e.stopPropagation();
                                       setGalleryFiles((prev) =>
-                                        prev.filter((_, i) => i !== idx)
+                                        prev.filter((_, i) => i !== idx),
                                       );
                                     }}
                                     style={{
@@ -2075,7 +2495,7 @@ const UpdateCelebrityForm = () => {
                     </Row>
                   )}
 
-{/* STEP 5: SEO & ADMIN (Admin Only) */}
+                  {/* STEP 5: SEO & ADMIN (Admin Only) */}
                   {currentStep === 5 && isAdmin && (
                     <Row>
                       <Col md="12" className="mb-3">
@@ -2091,7 +2511,9 @@ const UpdateCelebrityForm = () => {
                           onKeyDown={handleTagKeyDown}
                           placeholder="Type a tag and press Enter..."
                         />
-                        <small className="text-muted">Press Enter to add tag</small>
+                        <small className="text-muted">
+                          Press Enter to add tag
+                        </small>
 
                         {formData.tags.length > 0 && (
                           <div className="mt-2 d-flex flex-wrap gap-2">
@@ -2165,7 +2587,9 @@ const UpdateCelebrityForm = () => {
                           onKeyDown={handleKeywordKeyDown}
                           placeholder="Type a keyword and press Enter..."
                         />
-                        <small className="text-muted">Press Enter to add keyword</small>
+                        <small className="text-muted">
+                          Press Enter to add keyword
+                        </small>
 
                         {formData.seoKeywords.length > 0 && (
                           <div className="mt-2 d-flex flex-wrap gap-2">
@@ -2228,7 +2652,9 @@ const UpdateCelebrityForm = () => {
                           value={formData.verificationStatus}
                         >
                           <option value="Not Claimed">Not Claimed</option>
-                          <option value="Claim Requested">Claim Requested</option>
+                          <option value="Claim Requested">
+                            Claim Requested
+                          </option>
                           <option value="Verified">Verified</option>
                         </Input>
                       </Col>
@@ -2260,9 +2686,9 @@ const UpdateCelebrityForm = () => {
                     </Button>
 
                     {currentStep < totalSteps ? (
-                      <Button 
-                        type="button" 
-                        color="primary" 
+                      <Button
+                        type="button"
+                        color="primary"
                         onClick={(e) => {
                           e.preventDefault();
                           handleNextStep();
@@ -2272,8 +2698,8 @@ const UpdateCelebrityForm = () => {
                         <i className="bx bx-chevron-right ms-1"></i>
                       </Button>
                     ) : (
-                      <Button 
-                        type="button" 
+                      <Button
+                        type="button"
                         color="success"
                         onClick={(e) => {
                           e.preventDefault();
