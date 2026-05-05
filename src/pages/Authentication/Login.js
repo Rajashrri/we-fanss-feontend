@@ -56,7 +56,7 @@ const LoginForm = () => {
                   />
                 </Link>
                 <h4 className="font-size-18 mt-4">Welcome Back!</h4>
-                <p className="text-muted">Sign in to continue to We Fanss.</p>
+                <p className="text-muted">Sign in to continue to We Fanss Admin Panel and manage your dashboard efficiently.</p>
               </div>
 
               <Formik
@@ -76,11 +76,11 @@ const LoginForm = () => {
                   <form className="form-horizontal" onSubmit={handleSubmit}>
                     <div className="auth-form-group-custom mb-4">
                       <i className="ri-user-2-line auti-custom-input-icon"></i>
-                      <Label htmlFor="email">Email</Label>
+                      <Label htmlFor="email">Email Address</Label>
                       <Input
                         type="email"
                         name="email"
-                        placeholder="Enter Email"
+                        placeholder="Enter your email address"
                         onChange={handleChange}
                         onBlur={handleBlur}
                         value={values.email}
@@ -97,7 +97,7 @@ const LoginForm = () => {
                       <Input
                         type="password"
                         name="password"
-                        placeholder="Enter Password"
+                        placeholder="Enter your password"
                         onChange={handleChange}
                         onBlur={handleBlur}
                         value={values.password}
@@ -115,7 +115,7 @@ const LoginForm = () => {
                         type="submit"
                         disabled={isSubmitting}
                       >
-                        {isSubmitting ? "Logging in..." : "Log In"}
+                        {isSubmitting ? "Logging in..." : "Sign In"}
                       </Button>
                     </div>
 
@@ -142,7 +142,7 @@ const LoginForm = () => {
                 <p>
                   © {new Date().getFullYear()}{" "}
                   <a href="#" target="_blank" rel="noreferrer">
-                    We Fanss
+                   We Fanss. All rights reserved. Powered By: DIIGIIHOST
                   </a>
                   .
                 </p>

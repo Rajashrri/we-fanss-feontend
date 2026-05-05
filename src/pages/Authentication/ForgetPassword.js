@@ -91,7 +91,7 @@ const ForgotPasswordPage = () => {
                       <div className="text-center mt-4">
                         <h4 className="font-size-18">Reset Password</h4>
                         <p className="text-muted">
-                          Enter your email to get reset link.
+                          Enter your email address to receive a password reset link.
                         </p>
                       </div>
 
@@ -115,7 +115,7 @@ const ForgotPasswordPage = () => {
       <Input
         {...field}
         type="email"
-        placeholder="Enter your email"
+        placeholder="Enter your registered email"
         invalid={!!errors.email}
       />
     )}

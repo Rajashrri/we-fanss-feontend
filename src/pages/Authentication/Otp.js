@@ -110,7 +110,7 @@ const VerifyOtpPage = () => {
                 </Link>
                 <h4 className="font-size-18 mt-4">OTP Verification</h4>
                 <p className="text-muted">
-                  Enter the 6-digit code sent to <strong>{loginEmail}</strong>
+                  Enter the 6-digit code sent to <strong>{loginEmail} to continue.</strong>
                 </p>
               </div>
 
@@ -133,8 +133,8 @@ const VerifyOtpPage = () => {
                   <form className="form-horizontal" onSubmit={handleSubmit}>
                     <Alert color="info" className="mb-4 text-center">
                       <i className="ri-information-line me-2"></i>
-                      You can use either <strong>Email OTP</strong> or{" "}
-                      <strong>Google Authenticator</strong>
+                      You can verify using <strong>Email OTP</strong> or{" "}
+                      <strong> Google Authenticator</strong>
                     </Alert>
 
                     <div className="auth-form-group-custom mb-4">
@@ -171,7 +171,7 @@ const VerifyOtpPage = () => {
                         type="submit"
                         disabled={isSubmitting}
                       >
-                        {isSubmitting ? "Verifying..." : "Verify Code"}
+                        {isSubmitting ? "Verifying..." : "Verify & Continue"}
                       </Button>
                     </div>
 
