@@ -206,7 +206,7 @@ const handleResendOtp = async () => {
                         target="_blank"
                         rel="noreferrer"
                       >
-                        We Fans  
+                       We Fanss. All rights reserved. Powered By: DIIGIIHOST.
                       </a>
                       .
                     </p>

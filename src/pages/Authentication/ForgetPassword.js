@@ -30,24 +30,41 @@ const ForgotPasswordPage = () => {
     };
   }, []);
 
-  const onSubmit = async (data) => {
-    try {
-      await fetch(
-        `${process.env.REACT_APP_API_BASE_URL}/api/auth/forgot-password`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email: data.email }),
-        }
-      );
+const onSubmit = async (data) => {
+  try {
+    const response = await fetch(
+      `${process.env.REACT_APP_API_BASE_URL}/api/auth/forgot-password`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email: data.email,
+        }),
+      }
+    );
 
-      // ✅ Always show success message (security best practice)
+    const result = await response.json();
+
+    if (response.ok) {
       setEmailSent(true);
-    } catch (error) {
-      toast.error("Server error. Please try again later.");
+      toast.success(
+        result.message ||
+          "Password reset link sent successfully."
+      );
+    } else {
+      toast.error(
+        result.message ||
+          "Something went wrong."
+      );
     }
-  };
-
+  } catch (error) {
+    toast.error(
+      "Server error. Please try again later."
+    );
+  }
+};
   return (
    
         <Col lg={4}>
@@ -79,7 +96,7 @@ const ForgotPasswordPage = () => {
                         </p>
                       </Alert>
 
-                      <Link to="/login">
+                      <Link to="/auth/login">
                         <Button color="primary" className="mt-3">
                           Back to Login
                         </Button>

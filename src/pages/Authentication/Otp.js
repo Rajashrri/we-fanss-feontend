@@ -215,7 +215,7 @@ const VerifyOtpPage = () => {
                 <p>
                   © {new Date().getFullYear()}{" "}
                   <a href="#" target="_blank" rel="noreferrer">
-                    We Fanss
+                   We Fanss. All rights reserved. Powered By: DIIGIIHOST.
                   </a>
                   .
                 </p>

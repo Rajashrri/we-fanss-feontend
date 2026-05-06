@@ -37,34 +37,64 @@ const ResetPasswordPage = () => {
       .required("Confirm password is required"),
   });
 
-  const handleSubmit = async (values, { setSubmitting, setErrors }) => {
-    try {
-      const response = await fetch(
-        `${process.env.REACT_APP_API_BASE_URL}/api/auth/reset-password`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            token, // ✅ backend expects this
-            newPassword: values.newPassword, // ✅ backend expects this
-          }),
-        }
-      );
-
-      const res_data = await response.json();
-
-      if (response.ok && res_data.success) {
-        toast.success("Password reset successfully!");
-        navigate("/auth/login");
-      } else {
-        setErrors({ submit: res_data.message || "Failed to reset password" });
-      }
-    } catch (error) {
-      setErrors({ submit: "Server error. Please try again later." });
+const handleSubmit = async (
+  values,
+  { setSubmitting, setErrors }
+) => {
+  try {
+    if (!token) {
+      setErrors({
+        submit:
+          "Invalid or expired reset link.",
+      });
+      return;
     }
 
+    const response = await fetch(
+      `${process.env.REACT_APP_API_BASE_URL}/api/auth/reset-password`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type":
+            "application/json",
+        },
+        body: JSON.stringify({
+          token: token,
+          password:
+            values.newPassword,
+        }),
+      }
+    );
+
+    const res_data =
+      await response.json();
+
+    if (
+      response.ok &&
+      res_data.success
+    ) {
+      toast.success(
+        "Password reset successfully!"
+      );
+
+      navigate("/auth/login");
+    } else {
+      setErrors({
+        submit:
+          res_data.message ||
+          "Failed to reset password",
+      });
+    }
+  } catch (error) {
+    setErrors({
+      submit:
+        "Server error. Please try again later.",
+    });
+  } finally {
     setSubmitting(false);
-  };
+  }
+};
+
 
   
 
@@ -150,7 +180,7 @@ const ResetPasswordPage = () => {
                   </Formik>
 
                   <div className="mt-4 text-center">
-                    <Link to="/login">Back to Login</Link>
+                    <Link to="/auth/login">Back to Login</Link>
                   </div>
                 </Col>
               </Row>
