@@ -102,3 +102,15 @@ export const getSocialLinksOptions = async () => {
   const response = await httpClient.get('/celebraty/sociallist');
   return response.data;
 };
+export const updateCelebratyFeatured = async (id, featured) => {
+  try {
+    const response = await httpClient.patch(
+      "/celebraty/update-celebratyfeatured",
+      { id, featured }
+    );
+
+    return response.data;
+  } catch (error) {
+    return error.response?.data;
+  }
+};

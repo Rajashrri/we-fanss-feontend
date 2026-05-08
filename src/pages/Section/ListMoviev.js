@@ -394,20 +394,26 @@ const MovievList = () => {
   const [celebrityName, setCelebrityName] = useState("");
 
   // ========== API CALLS ==========
-  const fetchMovies = useCallback(async () => {
-    try {
-      setLoading(true);
-      const result = await getMoviesByCelebrity(celebrityId);
-      const dataArray = Array.isArray(result?.msg) ? result?.msg : [];
-      setMovies(dataArray);
-    } catch (error) {
-      console.error("Error fetching movies:", error);
-      toast.error("Failed to load movies");
-      setMovies([]);
-    } finally {
-      setLoading(false);
-    }
-  }, [celebrityId]);
+ const fetchMovies = useCallback(async () => {
+  try {
+    setLoading(true);
+
+    const result = await getMoviesByCelebrity(celebrityId);
+
+    const dataArray = Array.isArray(result?.data)
+      ? result.data
+      : [];
+
+    setMovies(dataArray);
+
+  } catch (error) {
+    console.error("Error fetching movies:", error);
+    toast.error("Failed to load movies");
+    setMovies([]);
+  } finally {
+    setLoading(false);
+  }
+}, [celebrityId]);
 
   const fetchCelebrityName = useCallback(async () => {
     try {

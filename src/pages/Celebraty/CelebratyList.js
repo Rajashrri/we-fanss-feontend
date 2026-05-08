@@ -25,6 +25,7 @@ import {
   getCelebraties,
   deleteCelebraty,
   updateCelebratyStatus,
+  updateCelebratyFeatured,
 } from "../../api/celebratyApi";
 import { publishItem, rejectItem } from "../../api/moderationApi";
 import DeleteConfirmModal from "../../components/Modals/DeleteModal";
@@ -446,6 +447,7 @@ const CelebratyList = () => {
   const [rejectModalOpen, setRejectModalOpen] = useState(false);
   const [rejectItem, setRejectItem] = useState(null);
   const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
+const [isUpdatingFeatured, setIsUpdatingFeatured] = useState(false);
 
   const [filters, setFilters] = useState({
     moderationState: searchParams.get("moderationState") || "",
@@ -575,6 +577,47 @@ const CelebratyList = () => {
       setIsUpdatingStatus(false);
     }
   };
+// 3. FEATURED FUNCTION replace karo
+const handleFeaturedChange = async (currentFeatured, id) => {
+  if (isUpdatingFeatured) return;
+
+  const newFeatured = Number(currentFeatured) === 1 ? 0 : 1;
+
+  try {
+    setIsUpdatingFeatured(true);
+
+    const response = await updateCelebratyFeatured(id, newFeatured);
+
+    const success = response.success;
+    const message = response.message || response.msg;
+
+    if (!success) {
+      toast.error(message || "Failed to update featured");
+      return;
+    }
+
+    toast.success(message || "Featured updated successfully");
+
+    setCelebrities((prev) =>
+      prev.map((celebrity) =>
+        celebrity._id === id
+          ? {
+              ...celebrity,
+              featured: response.data.featured, // ✅ FIXED
+            }
+          : celebrity
+      )
+    );
+  } catch (error) {
+    toast.error("Error updating featured");
+    fetchCelebrities();
+  } finally {
+    setIsUpdatingFeatured(false);
+  }
+};
+
+
+  
 
   const handlePublish = async (id, name) => {
     try {
@@ -677,6 +720,26 @@ const CelebratyList = () => {
       accessor: "createdAt",
       Cell: ({ value }) => formatDate(value),
     },
+      {
+  Header: "Category Name",
+  accessor: "professions",
+  Cell: ({ row }) => {
+    const professions = row.original.professions || [];
+
+    return (
+      <span>
+        {professions.length > 0
+          ? professions
+              .map((item) =>
+                typeof item === "object" ? item.name : item
+              )
+              .filter(Boolean)
+              .join(", ")
+          : "—"}
+      </span>
+    );
+  },
+},
     {
       Header: "Celebrity Name",
       accessor: "name",
@@ -689,6 +752,8 @@ const CelebratyList = () => {
       accessor: "moderationState",
       Cell: ({ value }) => getModerationBadge(value),
     },
+
+    
     ...(hasAnySectionPermission
       ? [
           {
@@ -789,6 +854,40 @@ const CelebratyList = () => {
         );
       },
     },
+
+{
+  Header: "Featured",
+  accessor: "featured",
+  Cell: ({ row }) => {
+    const isFeatured = Number(row.original.featured) === 1;
+
+    return (
+      <div className="form-check form-switch">
+        <input
+          type="checkbox"
+          className="form-check-input"
+          checked={isFeatured}
+          onChange={() =>
+            handleFeaturedChange(
+              row.original.featured,
+              row.original._id
+            )
+          }
+          disabled={!basicPermissions.edit || isUpdatingFeatured}
+          style={{
+            width: "48px",
+            height: "24px",
+            cursor: "pointer",
+            backgroundColor: isFeatured ? "#28a745" : "#ccc",
+            borderColor: isFeatured ? "#28a745" : "#ccc",
+          }}
+        />
+      </div>
+    );
+  },
+},
+
+ 
     ...(hasAnyActionPermission
       ? [
           {
