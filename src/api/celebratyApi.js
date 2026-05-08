@@ -106,11 +106,19 @@ export const updateCelebratyFeatured = async (id, featured) => {
   try {
     const response = await httpClient.patch(
       "/celebraty/update-celebratyfeatured",
-      { id, featured }
+      {
+        id,
+        featured: Number(featured), // ✅ force number
+      }
     );
 
     return response.data;
   } catch (error) {
-    return error.response?.data;
+    return {
+      success: false,
+      message:
+        error.response?.data?.message ||
+        "Failed to update featured",
+    };
   }
 };

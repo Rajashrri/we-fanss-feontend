@@ -720,6 +720,8 @@ const handleFeaturedChange = async (currentFeatured, id) => {
       accessor: "createdAt",
       Cell: ({ value }) => formatDate(value),
     },
+
+
       {
   Header: "Category Name",
   accessor: "professions",
@@ -856,37 +858,34 @@ const handleFeaturedChange = async (currentFeatured, id) => {
     },
 
 {
-  Header: "Featured",
-  accessor: "featured",
-  Cell: ({ row }) => {
-    const isFeatured = Number(row.original.featured) === 1;
-
-    return (
-      <div className="form-check form-switch">
-        <input
-          type="checkbox"
-          className="form-check-input"
-          checked={isFeatured}
-          onChange={() =>
-            handleFeaturedChange(
-              row.original.featured,
-              row.original._id
-            )
-          }
-          disabled={!basicPermissions.edit || isUpdatingFeatured}
-          style={{
-            width: "48px",
-            height: "24px",
-            cursor: "pointer",
-            backgroundColor: isFeatured ? "#28a745" : "#ccc",
-            borderColor: isFeatured ? "#28a745" : "#ccc",
-          }}
-        />
-      </div>
-    );
-  },
-},
-
+      Header: "Featured",
+      accessor: "featured",
+      Cell: ({ row }) => {
+        const isActive22 = Number(row.original.featured) === 1;
+    console.log("Featured Raw Value:", row.original.featured);
+    console.log("Featured Boolean:", isActive22);
+        return (
+          <div className="form-check form-switch">
+            <input
+              type="checkbox"
+              className="form-check-input"
+              id={`featured-${row.original._id}`}
+              checked={isActive22}
+              onChange={() => handleFeaturedChange(row.original.featured, row.original._id)}
+              disabled={!basicPermissions.edit || isUpdatingFeatured}
+              style={{
+                width: "48px",
+                height: "24px",
+                cursor: basicPermissions.edit && !isUpdatingFeatured ? "pointer" : "not-allowed",
+                backgroundColor: isActive22 ? "#4285F4" : "#ccc",
+                borderColor: isActive22 ? "#1E90FF" : "#ccc",
+                opacity: isUpdatingFeatured ? 0.6 : 1,
+              }}
+            />
+          </div>
+        );
+      },
+    },
  
     ...(hasAnyActionPermission
       ? [
