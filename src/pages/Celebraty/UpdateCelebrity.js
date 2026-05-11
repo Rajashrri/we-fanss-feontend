@@ -291,22 +291,33 @@ const UpdateCelebrityForm = () => {
       setLoading(false);
     }
   };
+const fetchSocialLinksOptions = async () => {
+  try {
+    const response = await getSocialLinksOptions();
 
-  const fetchSocialLinksOptions = async () => {
-    try {
-      const response = await getSocialLinksOptions();
-      const data = response.data || response.msg || response;
-      const options = (Array.isArray(data) ? data : []).map((item) => ({
-        value: item._id,
-        label: item.name?.trim() || item.name,
-      }));
-      setSocialLinksOptions(options);
-    } catch (err) {
-      console.error("Error fetching social link options:", err);
-      toast.error("Failed to fetch social links");
-    }
-  };
+    console.log("Full Response:", response);
 
+    const data =
+      response?.data?.data ||   // axios response
+      response?.data ||         // direct array
+      response?.msg ||
+      [];
+
+    console.log("Parsed Data:", data);
+
+    const options = Array.isArray(data)
+      ? data.map((item) => ({
+          value: item._id,
+          label: item.name?.trim() || item.name,
+        }))
+      : [];
+
+    setSocialLinksOptions(options);
+  } catch (err) {
+    console.error("Error fetching social link options:", err);
+    toast.error("Failed to fetch social links");
+  }
+};
   const fetchLanguageOptions = async () => {
     try {
       const response = await getLanguageOptions();
