@@ -70,6 +70,7 @@ const UpdateCelebrityForm = () => {
   const [professionsOptions, setProfessionsOptions] = useState([]);
   const [socialLinksOptions, setSocialLinksOptions] = useState([]);
   const [categoryFile, setCategoryFile] = useState(null);
+  const [featuredFile, setFeaturedFile] = useState(null);
 
   const [tagInput, setTagInput] = useState("");
   const [keywordInput, setKeywordInput] = useState("");
@@ -84,9 +85,14 @@ const UpdateCelebrityForm = () => {
     previewCategoryImage: "",
     old_categoryimage: "",
     removeOldCategoryImage: false,
+
     previewImage: "",
     old_image: "",
     removeOldImage: false,
+
+    previewFeaturedImage: "",
+    old_featuredimage: "",
+    removeOldFeaturedImage: false,
 
     dob: "",
     birthplace: "",
@@ -199,6 +205,11 @@ const UpdateCelebrityForm = () => {
 
         previewCategoryImage: "",
         removeOldCategoryImage: false,
+
+        old_featuredimage: celebrityData.identityProfile?.featuredImage || "",
+
+        previewFeaturedImage: "",
+        removeOldFeaturedImage: false,
 
         dob: celebrityData.personalDetails?.dob
           ? new Date(celebrityData.personalDetails.dob)
@@ -782,9 +793,14 @@ const UpdateCelebrityForm = () => {
       if (categoryFile) {
         formDataToSend.append("categoryimage", categoryFile);
       }
-
+      if (featuredFile) {
+        formDataToSend.append("featuredimage", featuredFile);
+      }
       if (formData.removeOldCategoryImage) {
         formDataToSend.append("removeOldCategoryImage", "true");
+      }
+      if (formData.removeOldFeaturedImage) {
+        formDataToSend.append("removeOldFeaturedImage", "true");
       }
       if (formData.removeOldImage) {
         formDataToSend.append("removeOldImage", "true");
@@ -2202,6 +2218,10 @@ const UpdateCelebrityForm = () => {
 
                       <Col md="12" className="mb-3">
                         <Label className="form-label">Profile Image</Label>
+                        {/* Red Note Text */}
+                        <small className="text-danger d-block mb-2">
+                          Note: Recommended image size should be 512 x 512 px
+                        </small>
                         <Input
                           type="file"
                           name="image"
@@ -2275,7 +2295,10 @@ const UpdateCelebrityForm = () => {
                       </Col>
                       <Col md="12" className="mb-3">
                         <Label className="form-label">Category Image</Label>
-
+                        {/* Red Note Text */}
+                        <small className="text-danger d-block mb-2">
+                          Note: Recommended image size should be 512 x 512 px
+                        </small>
                         <Input
                           type="file"
                           name="categoryimage"
@@ -2348,7 +2371,85 @@ const UpdateCelebrityForm = () => {
                           </div>
                         )}
                       </Col>
+                      <Col md="12" className="mb-3">
+                        <Label className="form-label">Featured Image</Label>
+                        {/* Red Note Text */}
+                        <small className="text-danger d-block mb-2">
+                          Note: Recommended image size should be 512 x 512 px
+                        </small>
 
+                        <Input
+                          type="file"
+                          name="featuredimage"
+                          accept="image/*"
+                          onChange={(e) => {
+                            const file = e.target.files[0];
+
+                            if (file) {
+                              if (file.size > 5 * 1024 * 1024) {
+                                toast.error(
+                                  "Image size should be less than 5MB",
+                                );
+                                e.target.value = null;
+                                return;
+                              }
+
+                              setFeaturedFile(file);
+
+                              setFormData((prev) => ({
+                                ...prev,
+                                previewFeaturedImage: URL.createObjectURL(file),
+                              }));
+                            }
+                          }}
+                        />
+
+                        {(formData.previewFeaturedImage ||
+                          formData.old_featuredimage) && (
+                          <div className="mt-3 position-relative d-inline-block">
+                            <img
+                              src={
+                                formData.previewFeaturedImage
+                                  ? formData.previewFeaturedImage
+                                  : `${API_BASE}${formData.old_featuredimage}`
+                              }
+                              alt="Category Preview"
+                              width="150"
+                              height="150"
+                              className="rounded border"
+                              style={{ objectFit: "cover" }}
+                            />
+
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setFeaturedFile(null);
+
+                                setFormData((prev) => ({
+                                  ...prev,
+                                  previewFeaturedImage: "",
+                                  old_featuredimage: "",
+                                  removeOldFeaturedImage: true,
+                                }));
+                              }}
+                              style={{
+                                position: "absolute",
+                                top: "-8px",
+                                right: "-8px",
+                                background: "red",
+                                color: "white",
+                                border: "none",
+                                borderRadius: "50%",
+                                width: "24px",
+                                height: "24px",
+                                cursor: "pointer",
+                              }}
+                            >
+                              ×
+                            </button>
+                          </div>
+                        )}
+                      </Col>
                       <Col md="12" className="mb-3">
                         <Label className="form-label">
                           Gallery Images (Multiple)

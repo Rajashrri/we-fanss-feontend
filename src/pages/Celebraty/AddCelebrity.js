@@ -68,6 +68,7 @@ const AddCelebrityForm = () => {
   const [categoryFile, setCategoryFile] = useState(null);
   const [tagInput, setTagInput] = useState("");
   const [keywordInput, setKeywordInput] = useState("");
+  const [featuredFile, setFeaturedFile] = useState(null);
 
   const [formData, setFormData] = useState({
     name: "",
@@ -679,7 +680,9 @@ const AddCelebrityForm = () => {
       if (categoryFile) {
         formDataToSend.append("categoryimage", categoryFile);
       }
-
+      if (featuredFile) {
+        formDataToSend.append("featuredimage", featuredFile);
+      }
       if (galleryFiles.length > 0) {
         galleryFiles.forEach((file) => {
           formDataToSend.append("gallery", file);
@@ -2099,6 +2102,10 @@ const AddCelebrityForm = () => {
 
                       <Col md="12" className="mb-3">
                         <Label className="form-label">Profile Image</Label>
+                        {/* Red Note Text */}
+                        <small className="text-danger d-block mb-2">
+                          Note: Recommended image size should be 512 x 512 px
+                        </small>
                         <Input
                           type="file"
                           name="image"
@@ -2168,7 +2175,10 @@ const AddCelebrityForm = () => {
                       {/* CATEGORY IMAGE */}
                       <Col md="6" className="mb-4">
                         <Label className="form-label">Category Image</Label>
-
+                        {/* Red Note Text */}
+                        <small className="text-danger d-block mb-2">
+                          Note: Recommended image size should be 512 x 512 px
+                        </small>
                         <Input
                           type="file"
                           name="categoryimage"
@@ -2214,6 +2224,79 @@ const AddCelebrityForm = () => {
                                 setFormData((prev) => ({
                                   ...prev,
                                   previewCategoryImage: "",
+                                }));
+                              }}
+                              style={{
+                                position: "absolute",
+                                top: "-8px",
+                                right: "-8px",
+                                background: "red",
+                                color: "white",
+                                border: "none",
+                                borderRadius: "50%",
+                                width: "24px",
+                                height: "24px",
+                                cursor: "pointer",
+                              }}
+                            >
+                              ×
+                            </button>
+                          </div>
+                        )}
+                      </Col>
+
+                      {/* Featured IMAGE */}
+                      <Col md="6" className="mb-4">
+                        <Label className="form-label">Featured Image</Label>
+                        {/* Red Note Text */}
+                        <small className="text-danger d-block mb-2">
+                          Note: Recommended image size should be 512 x 512 px
+                        </small>
+                        <Input
+                          type="file"
+                          name="featuredimage"
+                          accept="image/*"
+                          onChange={(e) => {
+                            const file = e.target.files[0];
+
+                            if (file) {
+                              if (file.size > 5 * 1024 * 1024) {
+                                toast.error(
+                                  "Image size should be less than 5MB",
+                                );
+                                e.target.value = null;
+                                return;
+                              }
+
+                              setFeaturedFile(file);
+
+                              setFormData((prev) => ({
+                                ...prev,
+                                previeFeaturedImage: URL.createObjectURL(file),
+                              }));
+                            }
+                          }}
+                        />
+
+                        {formData.previeFeaturedImage && (
+                          <div className="mt-3 position-relative d-inline-block">
+                            <img
+                              src={formData.previeFeaturedImage}
+                              alt="Category Preview"
+                              width="150"
+                              height="150"
+                              className="rounded border"
+                              style={{ objectFit: "cover" }}
+                            />
+
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setFeaturedFile(null);
+
+                                setFormData((prev) => ({
+                                  ...prev,
+                                  previeFeaturedImage: "",
                                 }));
                               }}
                               style={{

@@ -588,37 +588,26 @@ const handleFeaturedChange = async (currentFeatured, id) => {
 
     const response = await updateCelebratyFeatured(id, newFeatured);
 
-    const success = response.success;
-    const message = response.message || response.msg;
-
-    if (!success) {
-      toast.error(message || "Failed to update featured");
-      return;
-    }
-
-    toast.success(message || "Featured updated successfully");
+    toast.success(response.message);
 
     setCelebrities((prev) =>
-      prev.map((celebrity) =>
-        celebrity._id === id
-          ? {
-              ...celebrity,
-              featured: response.data.featured, // ✅ FIXED
-            }
-          : celebrity
+      prev.map((item) =>
+        item._id === id
+          ? { ...item, featured: newFeatured }
+          : item
       )
     );
   } catch (error) {
-    toast.error("Error updating featured");
-    fetchCelebrities();
+    console.log("ERROR:", error);
+
+    toast.error(
+      error?.response?.data?.message ||
+      "Only 2 featured celebrities allowed in this category"
+    );
   } finally {
     setIsUpdatingFeatured(false);
   }
 };
-
-
-  
-
   const handlePublish = async (id, name) => {
     try {
       const response = await publishItem("celebrity", id);
