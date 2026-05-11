@@ -1578,7 +1578,7 @@ const UpdateCelebrityForm = () => {
                         </div>
                       </Col>
 
-                      <Col md="6" className="mb-3">
+                      {/* <Col md="6" className="mb-3">
                         <Label>Current City / Base Location</Label>
                         <Input
                           name="currentCity"
@@ -1587,9 +1587,9 @@ const UpdateCelebrityForm = () => {
                           placeholder="e.g. Mumbai, India"
                           type="text"
                         />
-                      </Col>
+                      </Col> */}
 
-                      <Col md="6" className="mb-3">
+                      {/* <Col md="6" className="mb-3">
                         <Label>Known For Region</Label>
                         <Select
                           isMulti
@@ -1609,7 +1609,7 @@ const UpdateCelebrityForm = () => {
                           }}
                           placeholder="Select regions..."
                         />
-                      </Col>
+                      </Col> */}
 
                       <Col md="6" className="mb-3">
                         <Label>Height</Label>
@@ -1621,7 +1621,7 @@ const UpdateCelebrityForm = () => {
                           type="text"
                         />
                       </Col>
-
+{/* 
                       <Col md="6" className="mb-3">
                         <Label>Signature Style / Known For</Label>
                         <Input
@@ -1631,7 +1631,7 @@ const UpdateCelebrityForm = () => {
                           placeholder="e.g. Romantic roles, open-arm pose"
                           type="text"
                         />
-                      </Col>
+                      </Col> */}
 
                       <Col md="12" className="mb-4 mt-4">
                         <hr />
