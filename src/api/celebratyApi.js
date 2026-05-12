@@ -1,18 +1,18 @@
 import httpClient from "../config/http/httpClient";
 
 export const getLanguageOptions = async () => {
-  const response = await httpClient.get('/celebraty/languageOptions');
+  const response = await httpClient.get("/celebraty/languageOptions");
   return response.data;
 };
 
 export const getProfessionsOptions = async () => {
-  const response = await httpClient.get('/celebraty/professionsOptions');
+  const response = await httpClient.get("/celebraty/professionsOptions");
   return response.data;
 };
 
 export const getProfessions = async () => {
   try {
-    const response = await httpClient.get('/celebraty/professions');
+    const response = await httpClient.get("/celebraty/professions");
     return response.data || [];
   } catch (error) {
     console.error("Error fetching professions:", error);
@@ -22,7 +22,7 @@ export const getProfessions = async () => {
 
 export const fetchSectionTemplate = async () => {
   try {
-    const response = await httpClient.get('/celebraty/fetchSectionTemplate');
+    const response = await httpClient.get("/celebraty/fetchSectionTemplate");
     return response.data || [];
   } catch (error) {
     console.error("Error fetching fetchSectionTemplate:", error);
@@ -31,24 +31,23 @@ export const fetchSectionTemplate = async () => {
 };
 
 export const addCelebraty = async (formData) => {
-  const response = await httpClient.post('/celebraty/addcelebraty', formData, {
+  const response = await httpClient.post("/celebraty/addcelebraty", formData, {
     headers: {
-      'Content-Type': 'multipart/form-data',
+      "Content-Type": "multipart/form-data",
     },
   });
   return response.data;
 };
 
 export const getCelebraties = async (params = {}) => {
-  
-  const response = await httpClient.get('/celebraty/getcelebraties', {
+  const response = await httpClient.get("/celebraty/getcelebraties", {
     params: {
       page: params.page || 1,
       limit: params.limit || 10,
-      search: params.search || '',
-      status: params.status || '', 
-      moderationState: params.moderationState || '',
-    }
+      search: params.search || "",
+      status: params.status || "",
+      moderationState: params.moderationState || "",
+    },
   });
   return response.data;
 };
@@ -59,14 +58,16 @@ export const getCelebratyById = async (id) => {
 };
 
 export const getSectionMasters = async () => {
-  const response = await httpClient.get('/celebraty/getSectionMasters');
+  const response = await httpClient.get("/celebraty/getSectionMasters");
   return response.data;
 };
 
 export const getCelebratySectionsByCeleb = async (celebratyId) => {
   try {
     if (!celebratyId) throw new Error("celebratyId is required");
-    const response = await httpClient.get(`/celebraty/getCelebratySectionsByCeleb/${celebratyId}`);
+    const response = await httpClient.get(
+      `/celebraty/getCelebratySectionsByCeleb/${celebratyId}`,
+    );
     return response.data.data || [];
   } catch (error) {
     console.error("Error fetching celebraty sections:", error);
@@ -76,11 +77,15 @@ export const getCelebratySectionsByCeleb = async (celebratyId) => {
 
 export const updateCelebraty = async (id, formData) => {
   try {
-    const response = await httpClient.patch(`/celebraty/updatecelebraty/${id}`, formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
+    const response = await httpClient.patch(
+      `/celebraty/updatecelebraty/${id}`,
+      formData,
+      {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
       },
-    });
+    );
     return response.data;
   } catch (error) {
     console.error("Update Celebraty API Error:", error);
@@ -94,12 +99,15 @@ export const deleteCelebraty = async (id) => {
 };
 
 export const updateCelebratyStatus = async (id, status) => {
-  const response = await httpClient.patch('/celebraty/update-statuscelebraty', { id, status });
+  const response = await httpClient.patch("/celebraty/update-statuscelebraty", {
+    id,
+    status,
+  });
   return response.data;
 };
 
 export const getSocialLinksOptions = async () => {
-  const response = await httpClient.get('/celebraty/sociallist');
+  const response = await httpClient.get("/celebraty/sociallist");
   return response.data;
 };
 export const updateCelebratyFeatured = async (id, featured) => {
@@ -109,16 +117,14 @@ export const updateCelebratyFeatured = async (id, featured) => {
       {
         id,
         featured: Number(featured), // ✅ force number
-      }
+      },
     );
 
     return response.data;
   } catch (error) {
     return {
       success: false,
-      message:
-        error.response?.data?.message ||
-        "Failed to update featured",
+      message: error.response?.data?.message || "Failed to update featured",
     };
   }
 };

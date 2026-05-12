@@ -23,7 +23,15 @@ import {
   getCelebratyById,
 } from "../../api/celebratyApi";
 import { useRoleName } from "../../config/store/authStore";
+const getImageUrl = (path) => {
+  if (!path) return "";
 
+  if (path.startsWith("http")) {
+    return path; // cloudinary url
+  }
+
+  return `${API_BASE}${path}`; // old local image
+};
 const knownForRegionOptions = [
   { value: "India", label: "India" },
   { value: "USA", label: "USA" },
@@ -291,33 +299,33 @@ const UpdateCelebrityForm = () => {
       setLoading(false);
     }
   };
-const fetchSocialLinksOptions = async () => {
-  try {
-    const response = await getSocialLinksOptions();
+  const fetchSocialLinksOptions = async () => {
+    try {
+      const response = await getSocialLinksOptions();
 
-    console.log("Full Response:", response);
+      console.log("Full Response:", response);
 
-    const data =
-      response?.data?.data ||   // axios response
-      response?.data ||         // direct array
-      response?.msg ||
-      [];
+      const data =
+        response?.data?.data || // axios response
+        response?.data || // direct array
+        response?.msg ||
+        [];
 
-    console.log("Parsed Data:", data);
+      console.log("Parsed Data:", data);
 
-    const options = Array.isArray(data)
-      ? data.map((item) => ({
-          value: item._id,
-          label: item.name?.trim() || item.name,
-        }))
-      : [];
+      const options = Array.isArray(data)
+        ? data.map((item) => ({
+            value: item._id,
+            label: item.name?.trim() || item.name,
+          }))
+        : [];
 
-    setSocialLinksOptions(options);
-  } catch (err) {
-    console.error("Error fetching social link options:", err);
-    toast.error("Failed to fetch social links");
-  }
-};
+      setSocialLinksOptions(options);
+    } catch (err) {
+      console.error("Error fetching social link options:", err);
+      toast.error("Failed to fetch social links");
+    }
+  };
   const fetchLanguageOptions = async () => {
     try {
       const response = await getLanguageOptions();
@@ -1632,7 +1640,7 @@ const fetchSocialLinksOptions = async () => {
                           type="text"
                         />
                       </Col>
-{/* 
+                      {/* 
                       <Col md="6" className="mb-3">
                         <Label>Signature Style / Known For</Label>
                         <Input
@@ -2262,7 +2270,7 @@ const fetchSocialLinksOptions = async () => {
                               src={
                                 formData.previewImage
                                   ? formData.previewImage
-                                  : `${API_BASE}${formData.old_image}`
+                                  : getImageUrl(formData.old_image)
                               }
                               alt="Preview"
                               width="150"
@@ -2343,7 +2351,7 @@ const fetchSocialLinksOptions = async () => {
                               src={
                                 formData.previewCategoryImage
                                   ? formData.previewCategoryImage
-                                  : `${API_BASE}${formData.old_categoryimage}`
+                                  : getImageUrl(formData.old_categoryimage)
                               }
                               alt="Category Preview"
                               width="150"
@@ -2422,7 +2430,7 @@ const fetchSocialLinksOptions = async () => {
                               src={
                                 formData.previewFeaturedImage
                                   ? formData.previewFeaturedImage
-                                  : `${API_BASE}${formData.old_featuredimage}`
+                                  : getImageUrl(formData.old_featuredimage)
                               }
                               alt="Category Preview"
                               width="150"
@@ -2505,7 +2513,7 @@ const fetchSocialLinksOptions = async () => {
                                   style={{ width: 120, height: 120 }}
                                 >
                                   <img
-                                    src={`${API_BASE}${file}`}
+                                    src={getImageUrl(file)}
                                     alt={`gallery-${idx}`}
                                     style={{
                                       width: "100%",
