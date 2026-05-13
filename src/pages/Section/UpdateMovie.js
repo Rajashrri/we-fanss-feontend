@@ -91,41 +91,45 @@ const UpdateMoviev = () => {
     }
   };
 
-  const fetchMovievById = async () => {
-    try {
-      const res = await getMovievById(id);
-      if (res.msg) {
-        const data = res.msg;
-        setFormData({
-          title: data.title || "",
-          release_year: data.release_year || "",
-          release_date: data.release_date || "",
-          role: data.role || "",
-          role_type: data.role_type || "",
-          languages: data.languages || [],
-          director: data.director || "",
-          producer: data.producer || "",
-          cast: data.cast || "",
-          notes: data.notes || "",
-          rating: data.rating || "",
-          awards: data.awards || "",
-          sort: data.sort || "",
-          genre: data.genre || [], // ✅ array
-          statusnew: data.statusnew || "",
-          platform_rating: data.platform_rating || "",
-          watchLinks: data.watchLinks || [],
-          old_image: data.image || "",
-        });
-        setCelebrityId(data.celebrityId);
-      } else {
-        toast.error("Movie not found");
-      }
-    } catch (err) {
-      console.error("Fetch Movie Error:", err);
-      toast.error("Failed to fetch movie data");
-    }
-  };
+const fetchMovievById = async () => {
+  try {
+    const res = await getMovievById(id);
 
+    console.log("Movie API Response:", res);
+
+    if (res.success && res.data) {
+      const data = res.data;
+
+      setFormData({
+        title: data.title || "",
+        release_year: data.releaseYear || "",
+        release_date: data.releaseDate || "",
+        role: data.role || "",
+        role_type: data.roleType || "",
+        languages: data.languages || [],
+        director: data.director || "",
+        producer: data.producer || "",
+        cast: data.cast || "",
+        notes: data.notes || "",
+        rating: data.rating || "",
+        awards: data.awards || "",
+        sort: data.sort || "",
+        genre: data.genre || [],
+        statusnew: data.statusnew || "",
+        platform_rating: data.platformRating || "",
+        watchLinks: data.watchLinks || [],
+        old_image: data.image || "",
+      });
+
+      setCelebrityId(data.celebrityId || "");
+    } else {
+      toast.error("Movie not found");
+    }
+  } catch (err) {
+    console.error("Fetch Movie Error:", err);
+    toast.error("Failed to fetch movie data");
+  }
+};
   const handleInput = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
@@ -265,7 +269,7 @@ const UpdateMoviev = () => {
                       )}
                     </Col>
 
-                    {/* Release Date */}
+                    {/* Release Date
                     <Col md="6">
                       <Label>Release Date</Label>
                       <Input
@@ -278,7 +282,7 @@ const UpdateMoviev = () => {
                     </Col>
 
                     {/* Role */}
-                    <Col md="6">
+                    {/* <Col md="6">
                       <Label>Role / Character Name</Label>
                       <Input
                         name="role"
@@ -287,10 +291,10 @@ const UpdateMoviev = () => {
                         placeholder="Role / Character Name"
                         type="text"
                       />
-                    </Col>
+                    </Col> */} 
 
                     {/* Role Type */}
-                    <Col md="6">
+                    {/* <Col md="6">
                       <Label>Role Type</Label>
                       <Input
                         type="select"
@@ -307,7 +311,7 @@ const UpdateMoviev = () => {
                         </option>
                         <option value="Voice">Voice</option>
                       </Input>
-                    </Col>
+                    </Col> */}
 
                     {/* Languages - Multi-select */}
                     <Col md="6">
@@ -329,7 +333,7 @@ const UpdateMoviev = () => {
                     </Col>
 
                     {/* Director, Producer, Cast */}
-                    <Col md="6">
+                    {/* <Col md="6">
                       <Label>Director</Label>
                       <Input
                         name="director"
@@ -338,8 +342,8 @@ const UpdateMoviev = () => {
                         placeholder="Director"
                         type="text"
                       />
-                    </Col>
-                    <Col md="6">
+                    </Col> */}
+                    {/* <Col md="6">
                       <Label>Producer</Label>
                       <Input
                         name="producer"
@@ -348,7 +352,7 @@ const UpdateMoviev = () => {
                         placeholder="Producer / Production House"
                         type="text"
                       />
-                    </Col>
+                    </Col> */}
                     <Col md="6">
                       <Label>Cast</Label>
                       <Input
@@ -414,7 +418,7 @@ const UpdateMoviev = () => {
                         type="number"
                       />
                     </Col>
-                    <Col md="6">
+                    {/* <Col md="6">
                       <Label>Awards / Nominations</Label>
                       <Input
                         name="awards"
@@ -423,7 +427,7 @@ const UpdateMoviev = () => {
                         placeholder="Awards / Nominations"
                         type="text"
                       />
-                    </Col>
+                    </Col> */}
 
                     {/* Sort & Status */}
                     <Col md="6">

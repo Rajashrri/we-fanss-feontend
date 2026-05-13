@@ -262,7 +262,7 @@ const AddMoviev = () => {
                       )}
                     </Col>
 
-                    <Col md="6" className="mb-3">
+                    {/* <Col md="6" className="mb-3">
                       <Label>Release Date</Label>
                       <Input
                         name="releaseDate"
@@ -282,9 +282,9 @@ const AddMoviev = () => {
                         type="text"
                         maxLength={100}
                       />
-                    </Col>
+                    </Col> */}
 
-                    <Col md="6" className="mb-3">
+                    {/* <Col md="6" className="mb-3">
                       <Label>Role Type</Label>
                       <Input
                         type="select"
@@ -299,7 +299,7 @@ const AddMoviev = () => {
                         <option value="Special Appearance">Special Appearance</option>
                         <option value="Voice">Voice</option>
                       </Input>
-                    </Col>
+                    </Col> */}
 
                     <Col md="6" className="mb-3">
                       <Label>Languages</Label>
@@ -319,7 +319,7 @@ const AddMoviev = () => {
                         placeholder="Choose languages..."
                       />
                     </Col>
-
+{/* 
                     <Col md="6" className="mb-3">
                       <Label>Director</Label>
                       <Input
@@ -330,9 +330,9 @@ const AddMoviev = () => {
                         type="text"
                         maxLength={200}
                       />
-                    </Col>
+                    </Col> */}
 
-                    <Col md="6" className="mb-3">
+                    {/* <Col md="6" className="mb-3">
                       <Label>Producer / Production House</Label>
                       <Input
                         name="producer"
@@ -342,7 +342,7 @@ const AddMoviev = () => {
                         type="text"
                         maxLength={200}
                       />
-                    </Col>
+                    </Col> */}
 
                     <Col md="6" className="mb-3">
                       <Label>Cast (Key Co-stars)</Label>
@@ -411,7 +411,7 @@ const AddMoviev = () => {
                         max="10"
                       />
                     </Col>
-
+{/* 
                     <Col md="6" className="mb-3">
                       <Label>Awards / Nominations</Label>
                       <Input
@@ -422,7 +422,7 @@ const AddMoviev = () => {
                         type="text"
                         maxLength={500}
                       />
-                    </Col>
+                    </Col> */}
 
                     <Col md="6" className="mb-3">
                       <Label>Sort Order</Label>
