@@ -162,7 +162,8 @@ const Updatecustomoption = () => {
 
       if (res_data?.success) {
         toast.success(res_data.message || "CustomOption updated successfully!");
-        navigate(`/dashboard/customoption-list/${celebrityId}`);
+
+         navigate(`/dashboard/${celebrityId}/customs`);
       } else {
         toast.error(res_data?.message || res_data?.msg || "Failed to update CustomOption");
       }

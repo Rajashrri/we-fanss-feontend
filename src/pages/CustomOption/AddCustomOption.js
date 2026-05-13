@@ -124,7 +124,7 @@ console.log("celebrityId:", celebrityId);
     if (res_data?.success === true) {
       toast.success(res_data.message || "CustomOption added successfully!");
       setErrors({});
-      navigate(`/dashboard/customoption-list/${celebrityId}`);
+      navigate(`/dashboard/${celebrityId}/customs`);
     } else {
       toast.error(res_data?.message || "Failed to add CustomOption");
     }
