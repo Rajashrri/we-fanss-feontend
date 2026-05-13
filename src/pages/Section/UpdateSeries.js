@@ -334,7 +334,7 @@ const UpdateSeries = () => {
                         <option value="Mini-series">Mini-series </option>
                       </Input>
                     </Col>
-                    <Col md="6">
+                    {/* <Col md="6">
                       <Label>Role / Character Name </Label>
                       <Input
                         name="role"
@@ -359,7 +359,7 @@ const UpdateSeries = () => {
 
                         <option value="Voice">Voice </option>
                       </Input>
-                    </Col>
+                    </Col> */}
                     <Col md="6">
                       <Label>Languages</Label>
                       <Select
@@ -382,7 +382,7 @@ const UpdateSeries = () => {
                       )}
                     </Col>
 
-                    <Col md="6">
+                    {/* <Col md="6">
                       <Label>Director </Label>
                       <Input
                         name="director"
@@ -391,7 +391,7 @@ const UpdateSeries = () => {
                         placeholder="Director "
                         type="text"
                       />
-                    </Col>
+                    </Col> */}
                     <Col md="12">
                       <Label>Synopsis / Notes</Label>
                       <Input

@@ -345,7 +345,7 @@ const AddSeries = () => {
                         <option value="Mini-series">Mini-series </option>
                       </Input>
                     </Col>
-                    <Col md="6">
+                    {/* <Col md="6">
                       <Label>Role / Character Name </Label>
                       <Input
                         name="role"
@@ -354,8 +354,8 @@ const AddSeries = () => {
                         placeholder="Role / Character Name "
                         type="text"
                       />
-                    </Col>
-                    <Col md="6">
+                    </Col> */}
+                    {/* <Col md="6">
                       <Label>Role Type</Label>
                       <Input
                         type="select"
@@ -369,7 +369,7 @@ const AddSeries = () => {
                         <option value="Cameo">Cameo </option>
                         <option value="Voice">Voice </option>
                       </Input>
-                    </Col>
+                    </Col> */}
                     <Col md="6">
                       <Label>Languages</Label>
                       <Select
@@ -392,7 +392,7 @@ const AddSeries = () => {
                       )}
                     </Col>
 
-                    <Col md="6">
+                    {/* <Col md="6">
                       <Label>Director </Label>
                       <Input
                         name="director"
@@ -401,7 +401,7 @@ const AddSeries = () => {
                         placeholder="Director "
                         type="text"
                       />
-                    </Col>
+                    </Col> */}
                     <Col md="12">
                       <Label>Synopsis / Notes</Label>
                       <Input
