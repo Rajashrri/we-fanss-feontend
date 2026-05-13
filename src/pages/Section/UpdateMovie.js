@@ -415,7 +415,9 @@ navigate(`/dashboard/fixed-sections/${celebrityId}/movies`);
                       {formData.old_image && (
                         <div className="mt-2">
                           <img
-                            src={`${process.env.REACT_APP_API_BASE_URL}/moviev/${formData.old_image}`}
+                              src={`${process.env.REACT_APP_API_BASE_URL}/movies/${formData.old_image}`}
+
+
                             alt="Poster"
                             width="100"
                             className="rounded border"
