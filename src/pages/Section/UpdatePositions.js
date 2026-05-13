@@ -152,8 +152,7 @@ const UpdatePositions = () => {
       }
 
       toast.success("Positions updated successfully!");
-      navigate(`/dashboard/list-positions/${celebrityId}`);
-    } catch (err) {
+ navigate(`/dashboard/fixed-sections/${celebrityId}/positions`);    } catch (err) {
       console.error("Update Positions Error:", err);
       toast.error("Something went wrong while updating the Positions.");
     }
@@ -244,7 +243,7 @@ const UpdatePositions = () => {
                       />
                     </Col>
 
-                    <Col md="6">
+                    {/* <Col md="6">
                       <Label>State </Label>
                       <Input
                         name="state"
@@ -253,9 +252,9 @@ const UpdatePositions = () => {
                         placeholder="State "
                         type="text"
                       />
-                    </Col>
+                    </Col> */}
 
-                    <Col md="6">
+                    {/* <Col md="6">
                       <Label>Constituency / Region </Label>
                       <Input
                         name="constituency"
@@ -264,20 +263,20 @@ const UpdatePositions = () => {
                         placeholder="Constituency / Region"
                         type="text"
                       />
-                    </Col>
+                    </Col> */}
 
                     <Col md="6">
-                      <Label>Party / Affiliation </Label>
+                      <Label>Current Affiliation </Label>
                       <Input
                         name="party"
                         value={formData.party}
                         onChange={handleInput}
-                        placeholder="Party / Affiliation "
+                        placeholder="Current Affiliation"
                         type="text"
                       />
                     </Col>
 
-                    <Col md="6">
+                    {/* <Col md="6">
                       <Label>Reporting To / Under </Label>
                       <Input
                         name="reporting"
@@ -286,7 +285,7 @@ const UpdatePositions = () => {
                         placeholder="Reporting To / Under"
                         type="text"
                       />
-                    </Col>
+                    </Col> */}
 
                     <Col md="12">
                       <Label>Major Work / Achievements </Label>
@@ -345,7 +344,7 @@ const UpdatePositions = () => {
                     </Col>
 
                     {/* ✅ Reference Links */}
-                    <Col md="12" className="mt-4">
+                    {/* <Col md="12" className="mt-4">
                       <h5>Reference Link(s)</h5>
                       {formData.reference.map((link, index) => (
                         <Row key={index} className="align-items-center mb-2">
@@ -397,7 +396,7 @@ const UpdatePositions = () => {
                       >
                         + Add Reference Link
                       </Button>
-                    </Col>
+                    </Col> */}
                   </Row>
 
                   <div className="d-flex gap-2 mt-3">

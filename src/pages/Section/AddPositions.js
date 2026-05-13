@@ -283,7 +283,7 @@ const AddPositions = () => {
                         type="text"
                       />
                     </Col>
-
+{/* 
                     <Col md="6">
                       <Label>State </Label>
                       <Input
@@ -293,9 +293,9 @@ const AddPositions = () => {
                         placeholder="State "
                         type="text"
                       />
-                    </Col>
+                    </Col> */}
 
-                    <Col md="6">
+                    {/* <Col md="6">
                       <Label>Constituency / Region </Label>
                       <Input
                         name="constituency"
@@ -304,20 +304,20 @@ const AddPositions = () => {
                         placeholder="Constituency / Region"
                         type="text"
                       />
-                    </Col>
+                    </Col> */}
 
                     <Col md="6">
-                      <Label>Party / Affiliation </Label>
+                      <Label>Current Affiliation </Label>
                       <Input
                         name="party"
                         value={formData.party}
                         onChange={handleInput}
-                        placeholder="Party / Affiliation "
+                        placeholder="Current Affiliation"
                         type="text"
                       />
                     </Col>
 
-                    <Col md="6">
+                    {/* <Col md="6">
                       <Label>Reporting To / Under </Label>
                       <Input
                         name="reporting"
@@ -326,7 +326,7 @@ const AddPositions = () => {
                         placeholder="Reporting To / Under"
                         type="text"
                       />
-                    </Col>
+                    </Col> */}
 
                     <Col md="12">
                       <Label>Major Work / Achievements </Label>
@@ -390,7 +390,7 @@ const AddPositions = () => {
                     </Col>
 
                     {/* ✅ WATCH LINKS SECTION */}
-                    <Col md="12" className="mt-4">
+                    {/* <Col md="12" className="mt-4">
                       <h5>Reference Link(s)</h5>
                       {formData.reference.map((link, index) => (
                         <Row key={index} className="align-items-center mb-2">
@@ -444,7 +444,7 @@ const AddPositions = () => {
                       >
                         + Add Reference Link
                       </Button>
-                    </Col>
+                    </Col> */}
                   </Row>
 
                   <div className="d-flex gap-2 mt-3">

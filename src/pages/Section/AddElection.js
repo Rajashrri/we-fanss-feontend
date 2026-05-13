@@ -124,9 +124,9 @@ const AddElection = () => {
       newErrors.type = "Election type is required";
     }
 
-    if (!formData?.state?.trim()) {
-      newErrors.state = "State is required";
-    }
+    // if (!formData?.state?.trim()) {
+    //   newErrors.state = "State is required";
+    // }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -185,8 +185,7 @@ const AddElection = () => {
       }
 
       toast.success("Election added successfully!");
-      navigate(`/dashboard/list-election/${celebrityId}`);
-
+ navigate(`/dashboard/fixed-sections/${celebrityId}/elections`);
       // Reset form
       setFormData({
         election_year: "",
@@ -295,7 +294,7 @@ const AddElection = () => {
                     </Col>
 
                     {/* ✅ State - REQUIRED */}
-                    <Col md="6">
+                    {/* <Col md="6">
                       <FormGroup>
                         <Label style={{ fontWeight: "500", fontSize: "14px" }}>
                           State <span className="text-danger">*</span>
@@ -320,7 +319,7 @@ const AddElection = () => {
                           </span>
                         )}
                       </FormGroup>
-                    </Col>
+                    </Col> */}
 
                     {/* Constituency */}
                     <Col md="6">
@@ -348,13 +347,13 @@ const AddElection = () => {
                     <Col md="6">
                       <FormGroup>
                         <Label style={{ fontWeight: "500", fontSize: "14px" }}>
-                          Party / Affiliation
+                         Current Affiliation
                         </Label>
                         <Input
                           name="party"
                           value={formData?.party}
                           onChange={handleInput}
-                          placeholder="Enter party or affiliation"
+                          placeholder="Enter Current Affiliation"
                           type="text"
                           disabled={isSubmitting}
                           style={{
@@ -367,7 +366,7 @@ const AddElection = () => {
                     </Col>
 
                     {/* Role in Election */}
-                    <Col md="6">
+                    {/* <Col md="6">
                       <FormGroup>
                         <Label style={{ fontWeight: "500", fontSize: "14px" }}>
                           Role in Election
@@ -391,7 +390,7 @@ const AddElection = () => {
                           <option value="Support">Support</option>
                         </Input>
                       </FormGroup>
-                    </Col>
+                    </Col> */}
 
                     {/* Result */}
                     <Col md="6">
@@ -422,7 +421,7 @@ const AddElection = () => {
                     </Col>
 
                     {/* Vote Share % */}
-                    <Col md="6">
+                    {/* <Col md="6">
                       <FormGroup>
                         <Label style={{ fontWeight: "500", fontSize: "14px" }}>
                           Vote Share %
@@ -443,7 +442,7 @@ const AddElection = () => {
                       </FormGroup>
                     </Col>
 
-                    {/* Total Votes Received */}
+                    
                     <Col md="6">
                       <FormGroup>
                         <Label style={{ fontWeight: "500", fontSize: "14px" }}>
@@ -463,10 +462,10 @@ const AddElection = () => {
                           }}
                         />
                       </FormGroup>
-                    </Col>
+                    </Col> */}
 
                     {/* Opponent(s) */}
-                    <Col md="6">
+                    {/* <Col md="6">
                       <FormGroup>
                         <Label style={{ fontWeight: "500", fontSize: "14px" }}>
                           Opponent(s)
@@ -485,7 +484,7 @@ const AddElection = () => {
                           }}
                         />
                       </FormGroup>
-                    </Col>
+                    </Col> */}
 
                     {/* Key Highlights / Notes */}
                     <Col md="12">

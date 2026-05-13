@@ -121,7 +121,7 @@ const UpdateElection = () => {
     if (!formData.election_year)
       newErrors.election_year = "Election year is required";
     if (!formData.type) newErrors.type = "Type is required";
-    if (!formData.state) newErrors.state = "State is required";
+    // if (!formData.state) newErrors.state = "State is required";
 
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
@@ -153,7 +153,7 @@ const UpdateElection = () => {
       }
 
       toast.success("Election updated successfully!");
-      navigate(`/list-election/${celebrityId}`);
+ navigate(`/dashboard/fixed-sections/${celebrityId}/elections`);
     } catch (err) {
       console.error("Update Election Error:", err);
       toast.error("Something went wrong while updating the Election.");
@@ -205,7 +205,7 @@ const UpdateElection = () => {
                       )}
                     </Col>
 
-                    <Col md="6">
+                    {/* <Col md="6">
                       <Label>State</Label>
                       <Input
                         type="text"
@@ -217,7 +217,7 @@ const UpdateElection = () => {
                       {errors.state && (
                         <span className="text-danger">{errors.state}</span>
                       )}
-                    </Col>
+                    </Col> */}
 
                     <Col md="6">
                       <Label>Constituency</Label>
@@ -231,17 +231,17 @@ const UpdateElection = () => {
                     </Col>
 
                     <Col md="6">
-                      <Label>Party / Affiliation</Label>
+                      <Label>Current Affiliation</Label>
                       <Input
                         type="text"
                         name="party"
                         value={formData.party}
                         onChange={handleInput}
-                        placeholder="Party / Affiliation"
+                        placeholder="Current Affiliation"
                       />
                     </Col>
 
-                    <Col md="6">
+                    {/* <Col md="6">
                       <Label>Role in Election</Label>
                       <Input
                         type="select"
@@ -255,7 +255,7 @@ const UpdateElection = () => {
                         <option value="Star Campaigner">Star Campaigner</option>
                         <option value="Support">Support</option>
                       </Input>
-                    </Col>
+                    </Col> */}
 
                     <Col md="6">
                       <Label>Result</Label>
@@ -274,7 +274,7 @@ const UpdateElection = () => {
                       </Input>
                     </Col>
 
-                    <Col md="6">
+                    {/* <Col md="6">
                       <Label>Vote Share %</Label>
                       <Input
                         type="text"
@@ -305,7 +305,7 @@ const UpdateElection = () => {
                         onChange={handleInput}
                         placeholder="Opponent names"
                       />
-                    </Col>
+                    </Col> */}
 
                     <Col md="12">
                       <Label>Key Highlights / Note</Label>

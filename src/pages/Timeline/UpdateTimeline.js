@@ -41,32 +41,40 @@ const Updatetimeline = () => {
     yearOptions.push(y);
   }
   // Fetch timeline data
-  useEffect(() => {
-    const fetchtimeline = async () => {
-      try {
-        const res_data = await gettimelineById(id);
+useEffect(() => {
+  const fetchtimeline = async () => {
+    try {
+      const res_data = await gettimelineById(id);
 
-        if (res_data.msg) {
-          const data = res_data.msg;
-          settimeline({
-            title: data.title || "",
-            description: data.description || "",
-            from_year: data.from_year || "",
-            to_year: data.to_year || "",
-            old_image: data.media || "",
-          });
-          setCelebrityId(data.celebrityId);
-        } else {
-          toast.error("timeline not found");
-        }
-      } catch (error) {
-        console.error("Fetch timeline error:", error);
-        toast.error("Failed to fetch timeline data");
+      console.log("Timeline API Response:", res_data);
+
+      const data = res_data?.data || res_data?.msg;
+
+      if (data) {
+        settimeline({
+          title: data.title || "",
+          description: data.description || "",
+          from_year: data.fromYear || "",
+          to_year: data.toYear || "",
+          old_image: data.media || "",
+        });
+
+        setCelebrityId(
+  data?.celebrity?._id ||
+  data?.celebrity ||
+  ""
+);
+      } else {
+        toast.error("Timeline not found");
       }
-    };
+    } catch (error) {
+      console.error("Fetch timeline error:", error);
+      toast.error("Failed to fetch timeline data");
+    }
+  };
 
-    fetchtimeline();
-  }, [id]);
+  fetchtimeline();
+}, [id]);
 
   // Input handler
   const handleInput = (e) => {
@@ -99,8 +107,8 @@ const Updatetimeline = () => {
 
       formData.append("title", timeline.title);
       formData.append("description", timeline.description);
-      formData.append("from_year", timeline.from_year);
-      formData.append("to_year", timeline.to_year);
+   formData.append("fromYear", timeline.from_year);
+formData.append("toYear", timeline.to_year);
 
       formData.append("updatedBy", adminid);
       if (timeline.media) formData.append("media", timeline.media);
@@ -116,7 +124,7 @@ const Updatetimeline = () => {
       }
 
       toast.success("timeline updated successfully!");
-      navigate(`/dashboard/timeline-list/${celebrityId}`);
+navigate(`/dashboard/fixed-sections/${celebrityId}/timeline`);
     } catch (error) {
       console.error("Update timeline Error:", error);
       toast.error("Something went wrong!");

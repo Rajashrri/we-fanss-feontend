@@ -214,7 +214,8 @@ const UpdateSeries = () => {
     }
 
     toast.success("Series updated successfully!");
-    navigate(`/dashboard/list-series/${celebrityId}`);
+     navigate(`/dashboard/fixed-sections/${celebrityId}/series`);
+
   } catch (err) {
     console.error("Update Series Error:", err);
     toast.error("Something went wrong while updating the Series.");

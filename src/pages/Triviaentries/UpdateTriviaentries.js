@@ -34,6 +34,7 @@ const UpdateTriviaentries = () => {
     media: null,
     sourceLink: "",
     oldMedia: "",
+    celebrityId: "",
   });
 
   // ✅ Fetch categories and entry data on load
@@ -63,31 +64,43 @@ const UpdateTriviaentries = () => {
   };
 
   // Fetch trivia entry by ID
-  const fetchTriviaEntry = async () => {
-    try {
-      const res_data = await getTriviaentriesById(id);
-      
-      const entry = res_data?.data || res_data?.msg;
-      
-      if (entry) {
-        setTrivia({
-          categoryId: entry.categoryId?._id || entry.categoryId || "",
-          categoryName: entry.categoryName || "",
-          title: entry.title || "",
-          description: entry.description || "",
-          sourceLink: entry.sourceLink || "",
-          oldMedia: entry.media || "",
-        });
-        setCelebrityId(entry.celebrityId?._id || entry.celebrityId);
-      } else {
-        toast.error("Failed to load trivia entry");
-      }
-    } catch (error) {
-      console.error("Error fetching trivia entry:", error);
-      toast.error("Error loading trivia entry");
-    }
-  };
+ const fetchTriviaEntry = async () => {
+  try {
+    const res_data = await getTriviaentriesById(id);
+    console.log("Full API Response:", res_data);
 
+    const entry = res_data?.data || res_data?.msg;
+
+    if (entry) {
+      const celebId =
+        entry?.celebrityId?._id ||
+        entry?.celebrityId ||
+        entry?.celebrity?._id ||
+        entry?.celebrity ||
+        "";
+
+      setTrivia({
+        categoryId: entry.categoryId?._id || entry.categoryId || "",
+        categoryName: entry.categoryName || "",
+        title: entry.title || "",
+        description: entry.description || "",
+        sourceLink: entry.sourceLink || "",
+        oldMedia: entry.media || "",
+        celebrityId: celebId,
+      });
+
+      setCelebrityId(celebId);
+
+      console.log("Entry:", entry);
+      console.log("celebrityId:", celebId);
+    } else {
+      toast.error("Failed to load trivia entry");
+    }
+  } catch (error) {
+    console.error("Error fetching trivia entry:", error);
+    toast.error("Error loading trivia entry");
+  }
+};
   // Handle input change
   const handleInput = (e) => {
     const { name, value } = e.target;
@@ -143,7 +156,7 @@ const UpdateTriviaentries = () => {
       }
 
       toast.success("Trivia Entry updated successfully!");
-      navigate(`/dashboard/triviaentries-list/${celebrityId}`);
+navigate(`/dashboard/fixed-sections/${trivia.celebrityId}/trivia`);
     } catch (error) {
       console.error("Update Trivia Entry Error:", error);
       toast.error(error.message || "Something went wrong!");

@@ -16,9 +16,12 @@ import { useParams, useNavigate } from "react-router-dom";
 import {
   getMovievById,
   updateMoviev,
-  getLanguageOptions,
-  getGenreMaster,
+  
 } from "../../api/movievApi";
+import {
+  getLanguageOptions,
+  getGenreOptions,
+} from "../../api/optionsApi";
 
 const UpdateMoviev = () => {
   const [breadcrumbItems] = useState([
@@ -63,34 +66,35 @@ const UpdateMoviev = () => {
     fetchMovievById();
   }, [id]);
 
-  const fetchLanguageOptions = async () => {
-    try {
-      const data = await getLanguageOptions();
-      const options = (data.msg || []).map((item) => ({
-        value: item._id,
-        label: item.name?.trim() || item.name,
-      }));
-      setLanguagesOptions(options);
-    } catch (err) {
-      console.error("Error fetching languages:", err);
-    }
-  };
+const fetchLanguageOptions = async () => {
+  try {
+    const res_data = await getLanguageOptions();
 
-  const fetchGenreOptions = async () => {
-    try {
-      const res_data = await getGenreMaster();
-      const options = Array.isArray(res_data.msg)
-        ? res_data.msg.map((item) => ({
-            value: item._id,
-            label: item.name?.trim() || item.name,
-          }))
-        : [];
-      setGenreOptions(options);
-    } catch (err) {
-      console.error("Error fetching genres:", err);
-    }
-  };
+    const options = (res_data.data || []).map((item) => ({
+      value: item.id,
+      label: item.label,
+    }));
 
+    setLanguagesOptions(options);
+  } catch (err) {
+    console.error("Error fetching languages:", err);
+  }
+};
+
+ const fetchGenreOptions = async () => {
+  try {
+    const res_data = await getGenreOptions();
+
+    const options = (res_data.data || []).map((item) => ({
+      value: item.id,
+      label: item.label,
+    }));
+
+    setGenreOptions(options);
+  } catch (err) {
+    console.error("Error fetching genres:", err);
+  }
+};
 const fetchMovievById = async () => {
   try {
     const res = await getMovievById(id);
@@ -106,7 +110,6 @@ const fetchMovievById = async () => {
         release_date: data.releaseDate || "",
         role: data.role || "",
         role_type: data.roleType || "",
-        languages: data.languages || [],
         director: data.director || "",
         producer: data.producer || "",
         cast: data.cast || "",
@@ -114,15 +117,37 @@ const fetchMovievById = async () => {
         rating: data.rating || "",
         awards: data.awards || "",
         sort: data.sort || "",
-        genre: data.genre || [],
         statusnew: data.statusnew || "",
         platform_rating: data.platformRating || "",
         watchLinks: data.watchLinks || [],
         old_image: data.image || "",
+
+        genre: Array.isArray(data.genre)
+    ? data.genre.map((item) =>
+        typeof item === "object" ? item._id || item.id : item
+      )
+    : [],
+
+  languages: Array.isArray(data.languages)
+    ? data.languages.map((item) =>
+        typeof item === "object" ? item._id || item.id : item
+      )
+    : [],
+                celebrityId:
+  data?.celebrity?._id ||
+  data?.celebrity ||
+  "",
+
+
+
+
       });
 
-      setCelebrityId(data.celebrityId || "");
-    } else {
+setCelebrityId(
+  data?.celebrity?._id ||
+  data?.celebrity ||
+  ""
+);    } else {
       toast.error("Movie not found");
     }
   } catch (err) {
@@ -201,7 +226,9 @@ const fetchMovievById = async () => {
       }
 
       toast.success("Movie updated successfully!");
-      navigate(`/dashboard/list-movie/${celebrityId}`);
+navigate(`/dashboard/fixed-sections/${celebrityId}/movies`);
+
+
     } catch (err) {
       console.error("Update Movie Error:", err);
       toast.error("Something went wrong while updating the movie.");
