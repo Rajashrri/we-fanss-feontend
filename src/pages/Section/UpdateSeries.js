@@ -46,6 +46,7 @@ const UpdateSeries = () => {
     sort: "",
     genre: "",
     old_image: "", // for preview
+    old_imagebg: "",
     seasons: [], // ✅ new field
   });
 
@@ -54,6 +55,7 @@ const UpdateSeries = () => {
   const [languagesOptions, setLanguageOptions] = useState([]);
   const [celebrityId, setCelebrityId] = useState("");
   const [optionscat, setOptions] = useState([]);
+  const [selectedBgFile, setSelectedBgFile] = useState(null);
 
   // Fetch languages & Series data
   useEffect(() => {
@@ -89,38 +91,39 @@ const UpdateSeries = () => {
   };
 
   const fetchSeriesById = async () => {
-  try {
-    const res = await getSeriesById(id);
-    if (res.msg) {
-      const data = res.msg;
-      setFormData({
-        title: data.title || "",
-        type: data.type || "",
-        start_year: data.start_year || "",
-        role: data.role || "",
-        role_type: data.role_type || "",
-        languages: data.languages || [],
-        director: data.director || "",
-        end_year: data.end_year || "",
-        genre: data.genre || [], // ✅ array
-        statusseries: data.statusseries || "",
-        notes: data.notes || "",
-        platform: data.platform || "",
-        sort: data.sort || "",
-        statusnew: data.statusnew || "",
-        watchLinks: data.watchLinks || [],
-        seasons: data.seasons || [],
-        old_image: data.image || "",
-      });
-      setCelebrityId(data.celebrityId);
-    } else {
-      toast.error("Series not found");
+    try {
+      const res = await getSeriesById(id);
+      if (res.msg) {
+        const data = res.msg;
+        setFormData({
+          title: data.title || "",
+          type: data.type || "",
+          start_year: data.start_year || "",
+          role: data.role || "",
+          role_type: data.role_type || "",
+          languages: data.languages || [],
+          director: data.director || "",
+          end_year: data.end_year || "",
+          genre: data.genre || [], // ✅ array
+          statusseries: data.statusseries || "",
+          notes: data.notes || "",
+          platform: data.platform || "",
+          sort: data.sort || "",
+          statusnew: data.statusnew || "",
+          watchLinks: data.watchLinks || [],
+          seasons: data.seasons || [],
+          old_image: data.image || "",
+          old_imagebg: data.imagebg || "",
+        });
+        setCelebrityId(data.celebrityId);
+      } else {
+        toast.error("Series not found");
+      }
+    } catch (err) {
+      console.error("Fetch Series Error:", err);
+      toast.error("Failed to fetch Series data");
     }
-  } catch (err) {
-    console.error("Fetch Series Error:", err);
-    toast.error("Failed to fetch Series data");
-  }
-};
+  };
 
   const handleAddSeason = () => {
     setFormData((prev) => ({
@@ -149,7 +152,10 @@ const UpdateSeries = () => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
-
+  const handleBgFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file) setSelectedBgFile(file);
+  };
   const handleFileChange = (e) => {
     const file = e.target.files[0];
     if (file) setSelectedFile(file);
@@ -174,54 +180,66 @@ const UpdateSeries = () => {
     updated[index][field] = value;
     setFormData((prev) => ({ ...prev, watchLinks: updated }));
   };
- const handleUpdateSubmit = async (e) => {
-  e.preventDefault();
+  const handleUpdateSubmit = async (e) => {
+    e.preventDefault();
 
-  const newErrors = {};
-  if (!formData.title) newErrors.title = "Title is required";
-  if (!formData.type) newErrors.type = "Type is required";
+    const newErrors = {};
+    if (!formData.title) newErrors.title = "Title is required";
+    if (!formData.type) newErrors.type = "Type is required";
 
-  if (Object.keys(newErrors).length > 0) {
-    setErrors(newErrors);
-    return;
-  }
-
-  try {
-    const formDataToSend = new FormData();
-
-    Object.keys(formData).forEach((key) => {
-      if (!["old_image", "watchLinks", "languages", "seasons", "genre"].includes(key)) {
-        formDataToSend.append(key, formData[key]);
-      }
-    });
-
-    // ✅ Stringify arrays
-    formDataToSend.append("languages", JSON.stringify(formData.languages));
-    formDataToSend.append("watchLinks", JSON.stringify(formData.watchLinks));
-    formDataToSend.append("seasons", JSON.stringify(formData.seasons));
-    formDataToSend.append("genre", JSON.stringify(formData.genre));
-
-    if (selectedFile) formDataToSend.append("image", selectedFile);
-
-    const adminid = localStorage.getItem("adminid");
-    formDataToSend.append("updatedBy", adminid);
-
-    const result = await updateSeries(id, formDataToSend);
-
-    if (!result.success) {
-      toast.error(result.message || "Failed to update Series.");
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
       return;
     }
 
-    toast.success("Series updated successfully!");
-     navigate(`/dashboard/fixed-sections/${celebrityId}/series`);
+    try {
+      const formDataToSend = new FormData();
 
-  } catch (err) {
-    console.error("Update Series Error:", err);
-    toast.error("Something went wrong while updating the Series.");
-  }
-};
+      Object.keys(formData).forEach((key) => {
+        if (
+          ![
+            "old_image",
+            "old_imagebg",
+            "watchLinks",
+            "languages",
+            "seasons",
+            "genre",
+          ].includes(key)
+        ) {
+          formDataToSend.append(key, formData[key]);
+        }
+      });
 
+      // ✅ Stringify arrays
+      formDataToSend.append("languages", JSON.stringify(formData.languages));
+      formDataToSend.append("watchLinks", JSON.stringify(formData.watchLinks));
+      formDataToSend.append("seasons", JSON.stringify(formData.seasons));
+      formDataToSend.append("genre", JSON.stringify(formData.genre));
+      // old images
+      formDataToSend.append("old_image", formData.old_image);
+      formDataToSend.append("old_imagebg", formData.old_imagebg);
+      if (selectedFile) formDataToSend.append("image", selectedFile);
+      if (selectedBgFile) {
+        formDataToSend.append("imagebg", selectedBgFile);
+      }
+
+      const adminid = localStorage.getItem("adminid");
+      formDataToSend.append("updatedBy", adminid);
+
+      const result = await updateSeries(id, formDataToSend);
+
+      if (!result.success) {
+        toast.error(result.message || "Failed to update Series.");
+        return;
+      }
+
+      toast.success("Series updated successfully!");
+      navigate(`/dashboard/fixed-sections/${celebrityId}/series`);
+    } catch (err) {
+      console.error("Update Series Error:", err);
+      toast.error("Something went wrong while updating the Series.");
+    }
+  };
 
   return (
     <div className="page-content">
@@ -247,31 +265,30 @@ const UpdateSeries = () => {
                       )}
                     </Col>
                     <Col md="6">
-  <div className="mb-3">
-    <Label className="form-label">Select Genre(s)</Label>
-    <Select
-      isMulti
-      name="genre"
-      options={optionscat}
-      value={optionscat.filter((opt) =>
-        formData.genre.includes(opt.value)
-      )}
-      onChange={(selectedOptions) =>
-        setFormData((prev) => ({
-          ...prev,
-          genre: selectedOptions.map((opt) => opt.value),
-        }))
-      }
-      placeholder="Select genres..."
-      className="react-select-container"
-      classNamePrefix="react-select"
-    />
-    {errors.genre && (
-      <span className="text-danger">{errors.genre}</span>
-    )}
-  </div>
-</Col>
-
+                      <div className="mb-3">
+                        <Label className="form-label">Select Genre(s)</Label>
+                        <Select
+                          isMulti
+                          name="genre"
+                          options={optionscat}
+                          value={optionscat.filter((opt) =>
+                            formData.genre.includes(opt.value),
+                          )}
+                          onChange={(selectedOptions) =>
+                            setFormData((prev) => ({
+                              ...prev,
+                              genre: selectedOptions.map((opt) => opt.value),
+                            }))
+                          }
+                          placeholder="Select genres..."
+                          className="react-select-container"
+                          classNamePrefix="react-select"
+                        />
+                        {errors.genre && (
+                          <span className="text-danger">{errors.genre}</span>
+                        )}
+                      </div>
+                    </Col>
 
                     <Col md="6">
                       <Label>Series Type</Label>
@@ -368,7 +385,7 @@ const UpdateSeries = () => {
                         name="languages"
                         options={languagesOptions}
                         value={languagesOptions.filter((opt) =>
-                          formData.languages.includes(opt.value)
+                          formData.languages.includes(opt.value),
                         )}
                         onChange={(selectedOptions) =>
                           setFormData((prev) => ({
@@ -428,7 +445,25 @@ const UpdateSeries = () => {
                         )}
                       </div>
                     </Col>
-
+                    <Col md="6">
+                      <Label>Main Background Image</Label>
+                      <Input
+                        type="file"
+                        name="imagebg"
+                        accept="image/*"
+                        onChange={handleBgFileChange}
+                      />
+                      {formData.old_imagebg && (
+                        <div className="mt-2">
+                          <img
+                            src={`${process.env.REACT_APP_API_BASE_URL}/series/${formData.old_imagebg}`}
+                            alt="Poster"
+                            width="100"
+                            className="rounded border"
+                          />
+                        </div>
+                      )}
+                    </Col>
                     <Col md="6">
                       <Label>Sort Order </Label>
                       <Input
@@ -469,7 +504,7 @@ const UpdateSeries = () => {
                                 handleWatchLinkChange(
                                   index,
                                   "platform",
-                                  e.target.value
+                                  e.target.value,
                                 )
                               }
                             />
@@ -484,7 +519,7 @@ const UpdateSeries = () => {
                                 handleWatchLinkChange(
                                   index,
                                   "url",
-                                  e.target.value
+                                  e.target.value,
                                 )
                               }
                             />
@@ -498,7 +533,7 @@ const UpdateSeries = () => {
                                 handleWatchLinkChange(
                                   index,
                                   "type",
-                                  e.target.value
+                                  e.target.value,
                                 )
                               }
                             >
@@ -543,7 +578,7 @@ const UpdateSeries = () => {
                                 handleSeasonChange(
                                   index,
                                   "season_no",
-                                  e.target.value
+                                  e.target.value,
                                 )
                               }
                             />
@@ -557,7 +592,7 @@ const UpdateSeries = () => {
                                 handleSeasonChange(
                                   index,
                                   "episodes",
-                                  e.target.value
+                                  e.target.value,
                                 )
                               }
                             />
@@ -571,7 +606,7 @@ const UpdateSeries = () => {
                                 handleSeasonChange(
                                   index,
                                   "year",
-                                  e.target.value
+                                  e.target.value,
                                 )
                               }
                             />
@@ -585,7 +620,7 @@ const UpdateSeries = () => {
                                 handleSeasonChange(
                                   index,
                                   "watch_link",
-                                  e.target.value
+                                  e.target.value,
                                 )
                               }
                             />

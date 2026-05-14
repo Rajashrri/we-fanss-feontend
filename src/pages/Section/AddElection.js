@@ -162,7 +162,10 @@ const AddElection = () => {
       formDataToSend.append("votes", formData?.votes || "");
       formDataToSend.append("opponent", formData?.opponent || "");
       formDataToSend.append("notes", formData?.notes || "");
-      formDataToSend.append("reference", JSON.stringify(formData?.reference || []));
+      formDataToSend.append(
+        "reference",
+        JSON.stringify(formData?.reference || []),
+      );
       formDataToSend.append("sort", formData?.sort || "");
       formDataToSend.append("statusnew", formData?.statusnew || "Draft");
       formDataToSend.append("celebrityId", celebrityId); // ✅ REQUIRED
@@ -185,7 +188,7 @@ const AddElection = () => {
       }
 
       toast.success("Election added successfully!");
- navigate(`/dashboard/fixed-sections/${celebrityId}/elections`);
+      navigate(`/dashboard/fixed-sections/${celebrityId}/elections`);
       // Reset form
       setFormData({
         election_year: "",
@@ -208,7 +211,10 @@ const AddElection = () => {
       setErrors({});
     } catch (err) {
       console.error("Add Election Error:", err);
-      toast.error(err?.response?.data?.message || "Something went wrong while adding the election");
+      toast.error(
+        err?.response?.data?.message ||
+          "Something went wrong while adding the election",
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -347,7 +353,7 @@ const AddElection = () => {
                     <Col md="6">
                       <FormGroup>
                         <Label style={{ fontWeight: "500", fontSize: "14px" }}>
-                         Current Affiliation
+                          Current Affiliation
                         </Label>
                         <Input
                           name="party"
@@ -588,14 +594,22 @@ const AddElection = () => {
 
                     {/* ✅ REFERENCE LINKS SECTION */}
                     <Col md="12" className="mt-4">
-                      <h5 style={{ fontSize: "16px", fontWeight: "600", marginBottom: "16px" }}>
+                      <h5
+                        style={{
+                          fontSize: "16px",
+                          fontWeight: "600",
+                          marginBottom: "16px",
+                        }}
+                      >
                         Reference Link(s)
                       </h5>
                       {formData?.reference?.map((link, index) => (
                         <Row key={index} className="align-items-end mb-3">
                           <Col md="3">
                             <FormGroup>
-                              <Label style={{ fontWeight: "500", fontSize: "14px" }}>
+                              <Label
+                                style={{ fontWeight: "500", fontSize: "14px" }}
+                              >
                                 Label
                               </Label>
                               <Input
@@ -603,7 +617,11 @@ const AddElection = () => {
                                 value={link?.label}
                                 placeholder="e.g. News Article"
                                 onChange={(e) =>
-                                  handleWatchLinkChange(index, "label", e?.target?.value)
+                                  handleWatchLinkChange(
+                                    index,
+                                    "label",
+                                    e?.target?.value,
+                                  )
                                 }
                                 disabled={isSubmitting}
                                 style={{
@@ -616,7 +634,9 @@ const AddElection = () => {
                           </Col>
                           <Col md="7">
                             <FormGroup>
-                              <Label style={{ fontWeight: "500", fontSize: "14px" }}>
+                              <Label
+                                style={{ fontWeight: "500", fontSize: "14px" }}
+                              >
                                 URL
                               </Label>
                               <Input
@@ -624,7 +644,11 @@ const AddElection = () => {
                                 value={link?.url}
                                 placeholder="https://..."
                                 onChange={(e) =>
-                                  handleWatchLinkChange(index, "url", e?.target?.value)
+                                  handleWatchLinkChange(
+                                    index,
+                                    "url",
+                                    e?.target?.value,
+                                  )
                                 }
                                 disabled={isSubmitting}
                                 style={{
@@ -693,7 +717,11 @@ const AddElection = () => {
                     <Button
                       type="button"
                       color="secondary"
-                      onClick={() => navigate(`/dashboard/fixed-sections/${celebrityId}/elections`)}
+                      onClick={() =>
+                        navigate(
+                          `/dashboard/fixed-sections/${celebrityId}/elections`,
+                        )
+                      }
                       disabled={isSubmitting}
                       style={{
                         borderRadius: "8px",

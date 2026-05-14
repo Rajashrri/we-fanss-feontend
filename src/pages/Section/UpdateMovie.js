@@ -13,15 +13,8 @@ import Breadcrumbs from "../../components/Common/Breadcrumb";
 import Select from "react-select";
 import { toast } from "react-toastify";
 import { useParams, useNavigate } from "react-router-dom";
-import {
-  getMovievById,
-  updateMoviev,
-  
-} from "../../api/movievApi";
-import {
-  getLanguageOptions,
-  getGenreOptions,
-} from "../../api/optionsApi";
+import { getMovievById, updateMoviev } from "../../api/movievApi";
+import { getLanguageOptions, getGenreOptions } from "../../api/optionsApi";
 
 const UpdateMoviev = () => {
   const [breadcrumbItems] = useState([
@@ -68,96 +61,86 @@ const UpdateMoviev = () => {
     fetchMovievById();
   }, [id]);
 
-const fetchLanguageOptions = async () => {
-  try {
-    const res_data = await getLanguageOptions();
+  const fetchLanguageOptions = async () => {
+    try {
+      const res_data = await getLanguageOptions();
 
-    const options = (res_data.data || []).map((item) => ({
-      value: item.id,
-      label: item.label,
-    }));
+      const options = (res_data.data || []).map((item) => ({
+        value: item.id,
+        label: item.label,
+      }));
 
-    setLanguagesOptions(options);
-  } catch (err) {
-    console.error("Error fetching languages:", err);
-  }
-};
-
- const fetchGenreOptions = async () => {
-  try {
-    const res_data = await getGenreOptions();
-
-    const options = (res_data.data || []).map((item) => ({
-      value: item.id,
-      label: item.label,
-    }));
-
-    setGenreOptions(options);
-  } catch (err) {
-    console.error("Error fetching genres:", err);
-  }
-};
-const fetchMovievById = async () => {
-  try {
-    const res = await getMovievById(id);
-
-    console.log("Movie API Response:", res);
-
-    if (res.success && res.data) {
-      const data = res.data;
-
-      setFormData({
-        title: data.title || "",
-        release_year: data.releaseYear || "",
-        release_date: data.releaseDate || "",
-        role: data.role || "",
-        role_type: data.roleType || "",
-        director: data.director || "",
-        producer: data.producer || "",
-        cast: data.cast || "",
-        notes: data.notes || "",
-        rating: data.rating || "",
-        awards: data.awards || "",
-        sort: data.sort || "",
-        statusnew: data.statusnew || "",
-        platform_rating: data.platformRating || "",
-        watchLinks: data.watchLinks || [],
-        old_image: data.image || "",
-         old_imagebg: data.imagebg || "",
-
-        genre: Array.isArray(data.genre)
-    ? data.genre.map((item) =>
-        typeof item === "object" ? item._id || item.id : item
-      )
-    : [],
-
-  languages: Array.isArray(data.languages)
-    ? data.languages.map((item) =>
-        typeof item === "object" ? item._id || item.id : item
-      )
-    : [],
-                celebrityId:
-  data?.celebrity?._id ||
-  data?.celebrity ||
-  "",
-
-
-
-
-      });
-
-setCelebrityId(
-  data?.celebrity?._id ||
-  data?.celebrity ||
-  ""
-);    } else {
-      toast.error("Movie not found");
+      setLanguagesOptions(options);
+    } catch (err) {
+      console.error("Error fetching languages:", err);
     }
-  } catch (err) {
-    console.error("Fetch Movie Error:", err);
-    toast.error("Failed to fetch movie data");
-  }
-};
+  };
+
+  const fetchGenreOptions = async () => {
+    try {
+      const res_data = await getGenreOptions();
+
+      const options = (res_data.data || []).map((item) => ({
+        value: item.id,
+        label: item.label,
+      }));
+
+      setGenreOptions(options);
+    } catch (err) {
+      console.error("Error fetching genres:", err);
+    }
+  };
+  const fetchMovievById = async () => {
+    try {
+      const res = await getMovievById(id);
+
+      console.log("Movie API Response:", res);
+
+      if (res.success && res.data) {
+        const data = res.data;
+
+        setFormData({
+          title: data.title || "",
+          release_year: data.releaseYear || "",
+          release_date: data.releaseDate || "",
+          role: data.role || "",
+          role_type: data.roleType || "",
+          director: data.director || "",
+          producer: data.producer || "",
+          cast: data.cast || "",
+          notes: data.notes || "",
+          rating: data.rating || "",
+          awards: data.awards || "",
+          sort: data.sort || "",
+          statusnew: data.statusnew || "",
+          platform_rating: data.platformRating || "",
+          watchLinks: data.watchLinks || [],
+          old_image: data.image || "",
+          old_imagebg: data.imagebg || "",
+
+          genre: Array.isArray(data.genre)
+            ? data.genre.map((item) =>
+                typeof item === "object" ? item._id || item.id : item,
+              )
+            : [],
+
+          languages: Array.isArray(data.languages)
+            ? data.languages.map((item) =>
+                typeof item === "object" ? item._id || item.id : item,
+              )
+            : [],
+          celebrityId: data?.celebrity?._id || data?.celebrity || "",
+        });
+
+        setCelebrityId(data?.celebrity?._id || data?.celebrity || "");
+      } else {
+        toast.error("Movie not found");
+      }
+    } catch (err) {
+      console.error("Fetch Movie Error:", err);
+      toast.error("Failed to fetch movie data");
+    }
+  };
   const handleInput = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
@@ -192,99 +175,95 @@ setCelebrityId(
     setFormData((prev) => ({ ...prev, watchLinks: updated }));
   };
 
-const handleUpdateSubmit = async (e) => {
-  e.preventDefault();
+  const handleUpdateSubmit = async (e) => {
+    e.preventDefault();
 
-  const newErrors = {};
+    const newErrors = {};
 
-  if (!formData.title) {
-    newErrors.title = "Title is required";
-  }
-
-  if (!formData.release_year) {
-    newErrors.release_year = "Release year is required";
-  }
-
-  if (Object.keys(newErrors).length > 0) {
-    setErrors(newErrors);
-    return;
-  }
-
-  try {
-    const formDataToSend = new FormData();
-
-    // ✅ Explicit backend field names (IMPORTANT)
-    formDataToSend.append("title", formData.title);
-    formDataToSend.append("releaseYear", formData.release_year);
-    formDataToSend.append("releaseDate", formData.release_date);
-    formDataToSend.append("role", formData.role);
-    formDataToSend.append("roleType", formData.role_type);
-    formDataToSend.append("director", formData.director);
-    formDataToSend.append("producer", formData.producer);
-    formDataToSend.append("cast", formData.cast);
-    formDataToSend.append("notes", formData.notes);
-    formDataToSend.append("rating", formData.rating);
-    formDataToSend.append("platformRating", formData.platform_rating);
-    formDataToSend.append("awards", formData.awards);
-    formDataToSend.append("sort", formData.sort);
-    formDataToSend.append("statusNew", formData.statusnew);
-
-    // old images
-    formDataToSend.append("old_image", formData.old_image);
-    formDataToSend.append("old_imagebg", formData.old_imagebg);
-
-    // arrays
-    formDataToSend.append(
-      "languages",
-      JSON.stringify(formData.languages || [])
-    );
-
-    formDataToSend.append(
-      "genre",
-      JSON.stringify(formData.genre || [])
-    );
-
-    formDataToSend.append(
-      "watchLinks",
-      JSON.stringify(formData.watchLinks || [])
-    );
-
-    // files
-    if (selectedFile) {
-      formDataToSend.append("image", selectedFile);
+    if (!formData.title) {
+      newErrors.title = "Title is required";
     }
 
-    if (selectedBgFile) {
-      formDataToSend.append("imagebg", selectedBgFile);
+    if (!formData.release_year) {
+      newErrors.release_year = "Release year is required";
     }
 
-    // updated by
-    const adminid = localStorage.getItem("adminid");
-    if (adminid) {
-      formDataToSend.append("updatedBy", adminid);
-    }
-
-    const result = await updateMoviev(id, formDataToSend);
-
-    if (!result.success) {
-      toast.error(result.message || "Failed to update movie.");
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
       return;
     }
 
-    toast.success("Movie updated successfully!");
+    try {
+      const formDataToSend = new FormData();
 
-    navigate(`/dashboard/fixed-sections/${celebrityId}/movies`);
+      // ✅ Explicit backend field names (IMPORTANT)
+      formDataToSend.append("title", formData.title);
+      formDataToSend.append("releaseYear", formData.release_year);
+      formDataToSend.append("releaseDate", formData.release_date);
+      formDataToSend.append("role", formData.role);
+      formDataToSend.append("roleType", formData.role_type);
+      formDataToSend.append("director", formData.director);
+      formDataToSend.append("producer", formData.producer);
+      formDataToSend.append("cast", formData.cast);
+      formDataToSend.append("notes", formData.notes);
+      formDataToSend.append("rating", formData.rating);
+      formDataToSend.append("platformRating", formData.platform_rating);
+      formDataToSend.append("awards", formData.awards);
+      formDataToSend.append("sort", formData.sort);
+      formDataToSend.append("statusNew", formData.statusnew);
 
-  } catch (err) {
-    console.error("Update Movie Error:", err);
-    console.error("Response:", err?.response?.data);
+      // old images
+      formDataToSend.append("old_image", formData.old_image);
+      formDataToSend.append("old_imagebg", formData.old_imagebg);
 
-    toast.error(
-      err?.response?.data?.message ||
-      "Something went wrong while updating the movie."
-    );
-  }
-};
+      // arrays
+      formDataToSend.append(
+        "languages",
+        JSON.stringify(formData.languages || []),
+      );
+
+      formDataToSend.append("genre", JSON.stringify(formData.genre || []));
+
+      formDataToSend.append(
+        "watchLinks",
+        JSON.stringify(formData.watchLinks || []),
+      );
+
+      // files
+      if (selectedFile) {
+        formDataToSend.append("image", selectedFile);
+      }
+
+      if (selectedBgFile) {
+        formDataToSend.append("imagebg", selectedBgFile);
+      }
+
+      // updated by
+      const adminid = localStorage.getItem("adminid");
+      if (adminid) {
+        formDataToSend.append("updatedBy", adminid);
+      }
+
+      const result = await updateMoviev(id, formDataToSend);
+
+      if (!result.success) {
+        toast.error(result.message || "Failed to update movie.");
+        return;
+      }
+
+      toast.success("Movie updated successfully!");
+
+      navigate(`/dashboard/fixed-sections/${celebrityId}/movies`);
+    } catch (err) {
+      console.error("Update Movie Error:", err);
+      console.error("Response:", err?.response?.data);
+
+      toast.error(
+        err?.response?.data?.message ||
+          "Something went wrong while updating the movie.",
+      );
+    }
+  };
 
   return (
     <div className="page-content">
@@ -318,7 +297,7 @@ const handleUpdateSubmit = async (e) => {
                         isMulti
                         options={genreOptions}
                         value={genreOptions.filter((opt) =>
-                          formData.genre.includes(opt.value)
+                          formData.genre.includes(opt.value),
                         )}
                         onChange={(selectedOptions) =>
                           setFormData((prev) => ({
@@ -369,7 +348,7 @@ const handleUpdateSubmit = async (e) => {
                         placeholder="Role / Character Name"
                         type="text"
                       />
-                    </Col> */} 
+                    </Col> */}
 
                     {/* Role Type */}
                     {/* <Col md="6">
@@ -398,7 +377,7 @@ const handleUpdateSubmit = async (e) => {
                         isMulti
                         options={languagesOptions}
                         value={languagesOptions.filter((opt) =>
-                          formData.languages.includes(opt.value)
+                          formData.languages.includes(opt.value),
                         )}
                         onChange={(selectedOptions) =>
                           setFormData((prev) => ({
@@ -466,9 +445,7 @@ const handleUpdateSubmit = async (e) => {
                       {formData.old_image && (
                         <div className="mt-2">
                           <img
-                              src={`${process.env.REACT_APP_API_BASE_URL}/movies/${formData.old_image}`}
-
-
+                            src={`${process.env.REACT_APP_API_BASE_URL}/movies/${formData.old_image}`}
                             alt="Poster"
                             width="100"
                             className="rounded border"
@@ -476,7 +453,7 @@ const handleUpdateSubmit = async (e) => {
                         </div>
                       )}
                     </Col>
- <Col md="6">
+                    <Col md="6">
                       <Label>Main Background Image</Label>
                       <Input
                         type="file"
@@ -487,9 +464,7 @@ const handleUpdateSubmit = async (e) => {
                       {formData.old_imagebg && (
                         <div className="mt-2">
                           <img
-                              src={`${process.env.REACT_APP_API_BASE_URL}/movies/${formData.old_imagebg}`}
-
-
+                            src={`${process.env.REACT_APP_API_BASE_URL}/movies/${formData.old_imagebg}`}
                             alt="Poster"
                             width="100"
                             className="rounded border"
@@ -567,7 +542,7 @@ const handleUpdateSubmit = async (e) => {
                                 handleWatchLinkChange(
                                   index,
                                   "platform",
-                                  e.target.value
+                                  e.target.value,
                                 )
                               }
                               placeholder="Netflix"
@@ -579,7 +554,11 @@ const handleUpdateSubmit = async (e) => {
                               type="url"
                               value={link.url}
                               onChange={(e) =>
-                                handleWatchLinkChange(index, "url", e.target.value)
+                                handleWatchLinkChange(
+                                  index,
+                                  "url",
+                                  e.target.value,
+                                )
                               }
                               placeholder="https://..."
                             />
@@ -590,7 +569,11 @@ const handleUpdateSubmit = async (e) => {
                               type="select"
                               value={link.type}
                               onChange={(e) =>
-                                handleWatchLinkChange(index, "type", e.target.value)
+                                handleWatchLinkChange(
+                                  index,
+                                  "type",
+                                  e.target.value,
+                                )
                               }
                             >
                               <option value="">Select</option>

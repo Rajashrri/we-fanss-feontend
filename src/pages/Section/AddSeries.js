@@ -49,6 +49,8 @@ const AddSeries = () => {
     notes: "",
     genre: [], // ✅ CHANGED: Now an array for multi-select
     image: "",
+    imagebg: "",
+
     watchLinks: [],
     seasons: [],
     sort: "",
@@ -58,6 +60,7 @@ const AddSeries = () => {
   const [selectedFile, setSelectedFile] = useState(null);
   const [errors, setErrors] = useState({});
   const [languagesOptions, setLanguageOptions] = useState([]);
+  const [selectedBgFile, setSelectedBgFile] = useState(null);
 
   useEffect(() => {
     fetchLanguageOptions();
@@ -107,7 +110,10 @@ const AddSeries = () => {
     const file = e.target.files[0];
     if (file) setSelectedFile(file);
   };
-
+  const handleBgFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file) setSelectedBgFile(file);
+  };
   // ✅ Handle Watch Links repeater
   const handleAddWatchLink = () => {
     setFormData((prev) => ({
@@ -189,7 +195,9 @@ const AddSeries = () => {
       if (selectedFile) {
         formDataToSend.append("image", selectedFile);
       }
-
+      if (selectedBgFile) {
+        formDataToSend.append("imagebg", selectedBgFile);
+      }
       const adminid = localStorage.getItem("adminid");
       formDataToSend.append("createdBy", adminid);
 
@@ -265,7 +273,7 @@ const AddSeries = () => {
                           name="genre"
                           options={optionscat}
                           value={optionscat.filter((opt) =>
-                            formData.genre.includes(opt.value)
+                            formData.genre.includes(opt.value),
                           )}
                           onChange={(selectedOptions) =>
                             setFormData((prev) => ({
@@ -377,7 +385,7 @@ const AddSeries = () => {
                         name="languages"
                         options={languagesOptions}
                         value={languagesOptions.filter((opt) =>
-                          formData.languages.includes(opt.value)
+                          formData.languages.includes(opt.value),
                         )}
                         onChange={(selectedOptions) =>
                           setFormData((prev) => ({
@@ -437,7 +445,22 @@ const AddSeries = () => {
                         )}
                       </div>
                     </Col>
-
+                    <Col md="6" className="mb-3">
+                      <Label> Main Background Image</Label>
+                      <Input
+                        type="file"
+                        name="imagebg"
+                        accept="image/*"
+                        onChange={handleBgFileChange}
+                      />
+                      {selectedFile && (
+                        <div className="mt-2">
+                          <small className="text-muted">
+                            Selected: {selectedFile.name}
+                          </small>
+                        </div>
+                      )}
+                    </Col>
                     <Col md="6">
                       <Label>Sort Order </Label>
                       <Input
@@ -478,7 +501,7 @@ const AddSeries = () => {
                                 handleWatchLinkChange(
                                   index,
                                   "platform",
-                                  e.target.value
+                                  e.target.value,
                                 )
                               }
                             />
@@ -493,7 +516,7 @@ const AddSeries = () => {
                                 handleWatchLinkChange(
                                   index,
                                   "url",
-                                  e.target.value
+                                  e.target.value,
                                 )
                               }
                             />
@@ -507,7 +530,7 @@ const AddSeries = () => {
                                 handleWatchLinkChange(
                                   index,
                                   "type",
-                                  e.target.value
+                                  e.target.value,
                                 )
                               }
                             >
@@ -553,7 +576,7 @@ const AddSeries = () => {
                                 handleSeasonChange(
                                   index,
                                   "season_no",
-                                  e.target.value
+                                  e.target.value,
                                 )
                               }
                             />
@@ -568,7 +591,7 @@ const AddSeries = () => {
                                 handleSeasonChange(
                                   index,
                                   "episodes",
-                                  e.target.value
+                                  e.target.value,
                                 )
                               }
                             />
@@ -583,7 +606,7 @@ const AddSeries = () => {
                                 handleSeasonChange(
                                   index,
                                   "year",
-                                  e.target.value
+                                  e.target.value,
                                 )
                               }
                             />
@@ -598,7 +621,7 @@ const AddSeries = () => {
                                 handleSeasonChange(
                                   index,
                                   "watch_link",
-                                  e.target.value
+                                  e.target.value,
                                 )
                               }
                             />
@@ -633,7 +656,9 @@ const AddSeries = () => {
                     <Button
                       type="button"
                       color="secondary"
-                      onClick={() => navigate(`/dashboard/list-series/${celebrityId}`)}
+                      onClick={() =>
+                        navigate(`/dashboard/list-series/${celebrityId}`)
+                      }
                     >
                       ← Back
                     </Button>
