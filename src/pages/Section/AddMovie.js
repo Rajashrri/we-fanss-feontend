@@ -30,7 +30,7 @@ const AddMoviev = () => {
   const [languageOptions, setLanguageOptions] = useState([]);
   const [selectedFile, setSelectedFile] = useState(null);
   const [errors, setErrors] = useState({});
-
+  const [selectedBgFile, setSelectedBgFile] = useState(null);
   const [formData, setFormData] = useState({
     title: "",
     releaseYear: "",
@@ -91,7 +91,10 @@ const AddMoviev = () => {
     const file = e.target.files[0];
     if (file) setSelectedFile(file);
   };
-
+  const handleBgFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file) setSelectedBgFile(file);
+  };
   const handleAddWatchLink = () => {
     setFormData((prev) => ({
       ...prev,
@@ -117,7 +120,8 @@ const AddMoviev = () => {
 
     const newErrors = {};
     if (!formData.title) newErrors.title = "Title is required";
-    if (!formData.releaseYear) newErrors.releaseYear = "Release year is required";
+    if (!formData.releaseYear)
+      newErrors.releaseYear = "Release year is required";
 
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
@@ -153,7 +157,9 @@ const AddMoviev = () => {
       if (selectedFile) {
         formDataToSend.append("image", selectedFile);
       }
-
+      if (selectedBgFile) {
+        formDataToSend.append("imagebg", selectedBgFile);
+      }
       // ✅ CreatedBy
       const adminid = localStorage.getItem("adminid");
       if (adminid) {
@@ -195,14 +201,16 @@ const AddMoviev = () => {
       setErrors({});
     } catch (err) {
       console.error("Add Movie Error:", err);
-      toast.error(err.response?.data?.message || "Something went wrong while adding the movie.");
+      toast.error(
+        err.response?.data?.message ||
+          "Something went wrong while adding the movie.",
+      );
     }
   };
 
   return (
     <div className="page-content">
       <Container fluid>
-       
         <Breadcrumbs title="Add Movie" breadcrumbItems={breadcrumbItems} />
         <Row>
           <Col xl="12">
@@ -211,7 +219,9 @@ const AddMoviev = () => {
                 <form onSubmit={handleAddSubmit}>
                   <Row>
                     <Col md="6" className="mb-3">
-                      <Label>Title <span className="text-danger">*</span></Label>
+                      <Label>
+                        Title <span className="text-danger">*</span>
+                      </Label>
                       <Input
                         name="title"
                         value={formData.title}
@@ -232,7 +242,7 @@ const AddMoviev = () => {
                         name="genre"
                         options={genreOptions}
                         value={genreOptions.filter((opt) =>
-                          formData.genre.includes(opt.value)
+                          formData.genre.includes(opt.value),
                         )}
                         onChange={(selectedOptions) =>
                           setFormData((prev) => ({
@@ -247,7 +257,9 @@ const AddMoviev = () => {
                     </Col>
 
                     <Col md="6" className="mb-3">
-                      <Label>Release Year <span className="text-danger">*</span></Label>
+                      <Label>
+                        Release Year <span className="text-danger">*</span>
+                      </Label>
                       <Input
                         name="releaseYear"
                         value={formData.releaseYear}
@@ -258,7 +270,9 @@ const AddMoviev = () => {
                         pattern="\d{4}"
                       />
                       {errors.releaseYear && (
-                        <span className="text-danger">{errors.releaseYear}</span>
+                        <span className="text-danger">
+                          {errors.releaseYear}
+                        </span>
                       )}
                     </Col>
 
@@ -308,7 +322,7 @@ const AddMoviev = () => {
                         name="languages"
                         options={languageOptions}
                         value={languageOptions.filter((opt) =>
-                          formData.languages.includes(opt.value)
+                          formData.languages.includes(opt.value),
                         )}
                         onChange={(selectedOptions) =>
                           setFormData((prev) => ({
@@ -319,7 +333,7 @@ const AddMoviev = () => {
                         placeholder="Choose languages..."
                       />
                     </Col>
-{/* 
+                    {/* 
                     <Col md="6" className="mb-3">
                       <Label>Director</Label>
                       <Input
@@ -379,11 +393,28 @@ const AddMoviev = () => {
                       />
                       {selectedFile && (
                         <div className="mt-2">
-                          <small className="text-muted">Selected: {selectedFile.name}</small>
+                          <small className="text-muted">
+                            Selected: {selectedFile.name}
+                          </small>
                         </div>
                       )}
                     </Col>
-
+                    <Col md="6" className="mb-3">
+                      <Label> Main Background Image</Label>
+                      <Input
+                        type="file"
+                        name="imagebg"
+                        accept="image/*"
+                        onChange={handleBgFileChange}
+                      />
+                      {selectedFile && (
+                        <div className="mt-2">
+                          <small className="text-muted">
+                            Selected: {selectedFile.name}
+                          </small>
+                        </div>
+                      )}
+                    </Col>
                     <Col md="6" className="mb-3">
                       <Label>IMDB Rating (0-10)</Label>
                       <Input
@@ -411,7 +442,7 @@ const AddMoviev = () => {
                         max="10"
                       />
                     </Col>
-{/* 
+                    {/* 
                     <Col md="6" className="mb-3">
                       <Label>Awards / Nominations</Label>
                       <Input
@@ -461,7 +492,11 @@ const AddMoviev = () => {
                               value={link.platform}
                               placeholder="e.g., Netflix"
                               onChange={(e) =>
-                                handleWatchLinkChange(index, "platform", e.target.value)
+                                handleWatchLinkChange(
+                                  index,
+                                  "platform",
+                                  e.target.value,
+                                )
                               }
                               maxLength={100}
                             />
@@ -473,7 +508,11 @@ const AddMoviev = () => {
                               value={link.url}
                               placeholder="https://..."
                               onChange={(e) =>
-                                handleWatchLinkChange(index, "url", e.target.value)
+                                handleWatchLinkChange(
+                                  index,
+                                  "url",
+                                  e.target.value,
+                                )
                               }
                               maxLength={500}
                             />
@@ -484,7 +523,11 @@ const AddMoviev = () => {
                               type="select"
                               value={link.type}
                               onChange={(e) =>
-                                handleWatchLinkChange(index, "type", e.target.value)
+                                handleWatchLinkChange(
+                                  index,
+                                  "type",
+                                  e.target.value,
+                                )
                               }
                             >
                               <option value="">Select</option>
@@ -524,7 +567,11 @@ const AddMoviev = () => {
                     <Button
                       type="button"
                       color="secondary"
-                      onClick={() => navigate(`/dashboard/fixed-sections/${celebrityId}/movies`)}
+                      onClick={() =>
+                        navigate(
+                          `/dashboard/fixed-sections/${celebrityId}/movies`,
+                        )
+                      }
                     >
                       Cancel
                     </Button>

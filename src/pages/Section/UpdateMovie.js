@@ -46,6 +46,7 @@ const UpdateMoviev = () => {
     rating: "",
     platform_rating: "",
     old_image: "",
+    old_imagebg: "",
     watchLinks: [],
     awards: "",
     sort: "",
@@ -58,6 +59,7 @@ const UpdateMoviev = () => {
   const [languagesOptions, setLanguagesOptions] = useState([]);
   const [genreOptions, setGenreOptions] = useState([]);
   const [celebrityId, setCelebrityId] = useState("");
+  const [selectedBgFile, setSelectedBgFile] = useState(null);
 
   // Fetch options & movie data
   useEffect(() => {
@@ -121,6 +123,7 @@ const fetchMovievById = async () => {
         platform_rating: data.platformRating || "",
         watchLinks: data.watchLinks || [],
         old_image: data.image || "",
+         old_imagebg: data.imagebg || "",
 
         genre: Array.isArray(data.genre)
     ? data.genre.map((item) =>
@@ -164,7 +167,10 @@ setCelebrityId(
     const file = e.target.files[0];
     if (file) setSelectedFile(file);
   };
-
+  const handleBgFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file) setSelectedBgFile(file);
+  };
   // ✅ Watch Links
   const handleAddWatchLink = () => {
     setFormData((prev) => ({
@@ -186,54 +192,99 @@ setCelebrityId(
     setFormData((prev) => ({ ...prev, watchLinks: updated }));
   };
 
-  const handleUpdateSubmit = async (e) => {
-    e.preventDefault();
+const handleUpdateSubmit = async (e) => {
+  e.preventDefault();
 
-    const newErrors = {};
-    if (!formData.title) newErrors.title = "Title is required";
-    if (!formData.release_year)
-      newErrors.release_year = "Release year is required";
+  const newErrors = {};
 
-    if (Object.keys(newErrors).length > 0) {
-      setErrors(newErrors);
+  if (!formData.title) {
+    newErrors.title = "Title is required";
+  }
+
+  if (!formData.release_year) {
+    newErrors.release_year = "Release year is required";
+  }
+
+  if (Object.keys(newErrors).length > 0) {
+    setErrors(newErrors);
+    return;
+  }
+
+  try {
+    const formDataToSend = new FormData();
+
+    // ✅ Explicit backend field names (IMPORTANT)
+    formDataToSend.append("title", formData.title);
+    formDataToSend.append("releaseYear", formData.release_year);
+    formDataToSend.append("releaseDate", formData.release_date);
+    formDataToSend.append("role", formData.role);
+    formDataToSend.append("roleType", formData.role_type);
+    formDataToSend.append("director", formData.director);
+    formDataToSend.append("producer", formData.producer);
+    formDataToSend.append("cast", formData.cast);
+    formDataToSend.append("notes", formData.notes);
+    formDataToSend.append("rating", formData.rating);
+    formDataToSend.append("platformRating", formData.platform_rating);
+    formDataToSend.append("awards", formData.awards);
+    formDataToSend.append("sort", formData.sort);
+    formDataToSend.append("statusNew", formData.statusnew);
+
+    // old images
+    formDataToSend.append("old_image", formData.old_image);
+    formDataToSend.append("old_imagebg", formData.old_imagebg);
+
+    // arrays
+    formDataToSend.append(
+      "languages",
+      JSON.stringify(formData.languages || [])
+    );
+
+    formDataToSend.append(
+      "genre",
+      JSON.stringify(formData.genre || [])
+    );
+
+    formDataToSend.append(
+      "watchLinks",
+      JSON.stringify(formData.watchLinks || [])
+    );
+
+    // files
+    if (selectedFile) {
+      formDataToSend.append("image", selectedFile);
+    }
+
+    if (selectedBgFile) {
+      formDataToSend.append("imagebg", selectedBgFile);
+    }
+
+    // updated by
+    const adminid = localStorage.getItem("adminid");
+    if (adminid) {
+      formDataToSend.append("updatedBy", adminid);
+    }
+
+    const result = await updateMoviev(id, formDataToSend);
+
+    if (!result.success) {
+      toast.error(result.message || "Failed to update movie.");
       return;
     }
 
-    try {
-      const formDataToSend = new FormData();
+    toast.success("Movie updated successfully!");
 
-      Object.keys(formData).forEach((key) => {
-        if (!["old_image", "watchLinks", "languages", "genre"].includes(key)) {
-          formDataToSend.append(key, formData[key]);
-        }
-      });
+    navigate(`/dashboard/fixed-sections/${celebrityId}/movies`);
 
-      // ✅ Arrays
-      formDataToSend.append("languages", JSON.stringify(formData.languages));
-      formDataToSend.append("genre", JSON.stringify(formData.genre));
-      formDataToSend.append("watchLinks", JSON.stringify(formData.watchLinks));
+  } catch (err) {
+    console.error("Update Movie Error:", err);
+    console.error("Response:", err?.response?.data);
 
-      if (selectedFile) formDataToSend.append("image", selectedFile);
-
-      const adminid = localStorage.getItem("adminid");
-      formDataToSend.append("updatedBy", adminid);
-
-      const result = await updateMoviev(id, formDataToSend);
-
-      if (!result.success) {
-        toast.error(result.message || "Failed to update movie.");
-        return;
-      }
-
-      toast.success("Movie updated successfully!");
-navigate(`/dashboard/fixed-sections/${celebrityId}/movies`);
-
-
-    } catch (err) {
-      console.error("Update Movie Error:", err);
-      toast.error("Something went wrong while updating the movie.");
-    }
-  };
+    toast.error(
+      err?.response?.data?.message ||
+      "Something went wrong while updating the movie."
+    );
+  }
+};
 
   return (
     <div className="page-content">
@@ -425,7 +476,27 @@ navigate(`/dashboard/fixed-sections/${celebrityId}/movies`);
                         </div>
                       )}
                     </Col>
+ <Col md="6">
+                      <Label>Main Background Image</Label>
+                      <Input
+                        type="file"
+                        name="imagebg"
+                        accept="image/*"
+                        onChange={handleBgFileChange}
+                      />
+                      {formData.old_imagebg && (
+                        <div className="mt-2">
+                          <img
+                              src={`${process.env.REACT_APP_API_BASE_URL}/movies/${formData.old_imagebg}`}
 
+
+                            alt="Poster"
+                            width="100"
+                            className="rounded border"
+                          />
+                        </div>
+                      )}
+                    </Col>
                     {/* Ratings & Awards */}
                     <Col md="6">
                       <Label>IMDB Rating</Label>
