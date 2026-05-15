@@ -793,7 +793,7 @@ const handleFeaturedChange = async (currentFeatured, id) => {
                     </Link>
                   )}
 
-                  {(customPermissions.publish || customPermissions.view) && (
+                  {/* {(customPermissions.publish || customPermissions.view) && (
                     <Link
                       to={`/dashboard/customoption-list/${celebrity._id}`}
                       className="theme-btn bg-theme"
@@ -810,7 +810,7 @@ const handleFeaturedChange = async (currentFeatured, id) => {
                     >
                       Custom
                     </Link>
-                  )}
+                  )} */}
                 </div>
               );
             },
