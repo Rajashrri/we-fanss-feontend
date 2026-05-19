@@ -134,6 +134,16 @@ export const updateMovieStatus = async (id, status) => {
   }
 };
 
+export const updateMovieFeatured = async (id, featured) => {
+  try {
+    const response = await httpClient.patch(`/movie/featured/${id}`, { featured });
+    return response.data;
+  } catch (error) {
+    console.error("Error updating movie status:", error);
+    throw error;
+  }
+};
+
 /**
  * Get social links options
  */

@@ -27,6 +27,7 @@ import {
   getMoviesByCelebrity,
   deleteMoviev,
   updateMovieStatus,
+  updateMovieFeatured,
 } from "../../api/movievApi";
 import { getCelebratyById } from "../../api/celebratyApi";
 import FixedSectionTab from "./FixedSectionTab";
@@ -464,7 +465,57 @@ const MovievList = () => {
       toast.error("Failed to update status");
     }
   };
+// ✅ Update Featured Status
+const handleFeaturedChange = async (currentFeatured, id) => {
+  if (!id) return;
 
+  const newFeatured = currentFeatured == 1 ? 0 : 1;
+
+  // Optimistic update
+  setMovies((prev) =>
+    prev?.map((item) =>
+      item?._id === id
+        ? { ...item, featured: newFeatured }
+        : item
+    )
+  );
+
+  try {
+    const res_data = await updateMovieFeatured(id, newFeatured);
+
+    if (res_data?.success === false) {
+      // Revert on failure
+      setMovies((prev) =>
+        prev?.map((item) =>
+          item?._id === id
+            ? { ...item, featured: currentFeatured }
+            : item
+        )
+      );
+
+      toast.error(res_data?.msg || "Failed to update featured status");
+    } else {
+      toast.success("Featured status updated successfully");
+    }
+  } catch (error) {
+
+  // Revert UI
+  setMovies((prev) =>
+    prev?.map((item) =>
+      item?._id === id
+        ? { ...item, featured: currentFeatured }
+        : item
+    )
+  );
+
+  console.error("Error:", error);
+
+  toast.error(
+    error?.response?.data?.msg ||
+    "Failed to update featured status"
+  );
+}
+};
   // ✅ Delete Movie
   const handleDeleteClick = (id) => {
     if (!id) {
@@ -559,6 +610,39 @@ const MovievList = () => {
         );
       },
     },
+
+{
+  Header: "Featured",
+  accessor: "featured",
+  Cell: ({ row }) => {
+    const isFeatured = row?.original?.featured == 1;
+
+    return (
+      <div className="form-check form-switch">
+        <input
+          type="checkbox"
+          className="form-check-input"
+          id={`featured-switch-${row?.original?._id}`}
+          checked={isFeatured}
+          onChange={() =>
+            handleFeaturedChange(
+              row?.original?.featured,
+              row?.original?._id
+            )
+          }
+          style={{
+            width: "48px",
+            height: "24px",
+            cursor: "pointer",
+            backgroundColor: isFeatured ? "#4285F4" : "#ccc",
+            borderColor: isFeatured ? "#1E90FF" : "#ccc",
+          }}
+        />
+      </div>
+    );
+  },
+},
+
     {
       Header: "Options",
       disableSortBy: true,

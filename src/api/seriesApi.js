@@ -68,6 +68,8 @@ export const updateSeries = async (id, formData) => {
   }
 };
 
+
+
 export const getGenreMaster = async () => {
   try {
     const response = await httpClient.get('/series/GenreMasterOptions');
@@ -86,6 +88,19 @@ export const updateSeriesStatus = async (id, status) => {
   }
 };
 
+export const updateSeriesFeatured = async (id, featured) => {
+  try {
+    const response = await httpClient.patch(
+      `/series/featured/${id}`,
+      { featured }
+    );
+
+    return response.data;
+  } catch (error) {
+    console.error("Error updating featured:", error);
+    throw error;
+  }
+};
 export const getSocialLinksOptions = async () => {
   try {
     const response = await httpClient.get('/series/sociallist');
