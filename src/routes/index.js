@@ -82,6 +82,11 @@ import EmployeeList from "../pages/Employee/EmployeeList";
 import CreateEmploye from "../pages/Employee/CreateEmploye";
 import UpdateEmploye from "../pages/Employee/UpdateEmploye";
 
+import AddWatch from "../pages/Watch/AddWatch";
+import UpdateWatch from "../pages/Watch/UpdateWatch";
+import WatchList from "../pages/Watch/WatchList";
+
+
 /* ================= PROFILE ================= */
 import Profile from "../pages/profile/Profile";
 import AuthLayout from "../layout/auth-layout";
@@ -152,6 +157,8 @@ const router = createBrowserRouter([
         { path: "positions", element: <ListPositions /> },
         { path: "references", element: <ReferencesList /> },
         { path: "related-personalities", element: <RelatedPersonalitiesList /> },
+                { path: "watch", element: <WatchList /> },
+
       ]
     },
 
@@ -174,6 +181,13 @@ const router = createBrowserRouter([
 
     { path: "add-positions/:id", element: <AddPositions /> },
     { path: "update-positions/:id", element: <UpdatePositions /> },
+
+
+ { path: "add-watch/:id", element: <AddWatch /> },
+    { path: "update-watch/:id", element: <UpdateWatch /> },
+
+
+
 
     { path: "sociallink-list", element: <SocialLinkList /> },
     { path: "genremaster-list", element: <GenreMasterList /> },
