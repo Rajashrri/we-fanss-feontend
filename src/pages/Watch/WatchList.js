@@ -318,11 +318,9 @@ const WatchList = () => {
 setWatchList(
   (result.data || []).map((item) => ({
     ...item,
-    status: Number(item.status), // 🔥 IMPORTANT
+    status: Number(item.status),
   }))
 );
-      setWatchList(result.data || []);
-
       if (result.meta?.moderationStats) {
         setModerationStats(result.meta.moderationStats);
       }
@@ -511,8 +509,8 @@ const handleStatusChange = async (watchId, currentStatus) => {
   Header: "Status",
   accessor: "status",
   Cell: ({ row }) => {
-    const isActive = Number(row.original.status) === 1;
-
+const isActive = Number(row.original.status) === 1;
+console.log("isActive",isActive)
     return (
       <div className="form-check form-switch">
         <input
@@ -526,6 +524,12 @@ const handleStatusChange = async (watchId, currentStatus) => {
               Number(row.original.status)
             )
           }
+             style={{
+                width: "48px",
+                height: "24px",
+                backgroundColor: isActive ? "#4285F4" : "#ccc",
+                borderColor: isActive ? "#1E90FF" : "#ccc",
+              }}
         />
       </div>
     );
