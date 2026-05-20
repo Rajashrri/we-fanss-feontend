@@ -376,32 +376,56 @@ setWatchList(
   // ========================================
   // STATUS
   // ========================================
+  const handleStatusChange =
+    async (
+      listenId,
+      currentStatus
+    ) => {
+      const newStatus =
+        Number(currentStatus) ===
+        1
+          ? 0
+          : 1;
 
-const handleStatusChange = async (watchId, currentStatus) => {
-  const newStatus = Number(currentStatus) === 1 ? 0 : 1;
+      try {
+        const res =
+          await updateWatchStatus(
+            listenId,
+            newStatus
+          );
 
-  try {
-    const res = await updateWatchStatus(watchId, newStatus);
+        if (!res?.success) {
+          toast.error(
+            res?.message ||
+              "Update failed"
+          );
 
-    if (!res?.success) {
-      toast.error(res?.message || "Update failed");
-      return;
-    }
+          return;
+        }
 
-    // 🔥 instant UI update (no fetchData)
-    setWatchList((prev) =>
-      prev.map((item) =>
-        item._id === watchId
-          ? { ...item, status: newStatus }
-          : item
-      )
-    );
+        setWatchList((prev) =>
+          prev.map((item) =>
+            item._id ===
+            listenId
+              ? {
+                  ...item,
+                  status:
+                    newStatus,
+                }
+              : item
+          )
+        );
 
-    toast.success("Status updated");
-  } catch (err) {
-    toast.error("Error updating status");
-  }
-};
+        toast.success(
+          "Status updated"
+        );
+      } catch (err) {
+        toast.error(
+          "Error updating status"
+        );
+      }
+    };
+
   // ========================================
   // DELETE
   // ========================================
@@ -505,36 +529,52 @@ const handleStatusChange = async (watchId, currentStatus) => {
     // },
 
 
-{
-  Header: "Status",
-  accessor: "status",
-  Cell: ({ row }) => {
-const isActive = Number(row.original.status) === 1;
-console.log("isActive",isActive)
-    return (
-      <div className="form-check form-switch">
-        <input
-          type="checkbox"
-          className="form-check-input"
-          id={`switch-${row.original._id}`}
-          checked={isActive}
-          onChange={() =>
-            handleStatusChange(
-              row.original._id,
-              Number(row.original.status)
-            )
-          }
-             style={{
+  {
+      Header: "Status",
+
+      accessor: "status",
+
+      Cell: ({ row }) => {
+        const isActive =
+          Number(
+            row.original.status
+          ) === 1;
+
+        return (
+          <div className="form-check form-switch">
+            <input
+              type="checkbox"
+              className="form-check-input"
+              id={`switch-${row.original._id}`}
+              checked={isActive}
+              onChange={() =>
+                handleStatusChange(
+                  row.original._id,
+                  Number(
+                    row.original
+                      .status
+                  )
+                )
+              }
+              style={{
                 width: "48px",
                 height: "24px",
-                backgroundColor: isActive ? "#4285F4" : "#ccc",
-                borderColor: isActive ? "#1E90FF" : "#ccc",
+                backgroundColor:
+                  isActive
+                    ? "#4285F4"
+                    : "#ccc",
+
+                borderColor:
+                  isActive
+                    ? "#1E90FF"
+                    : "#ccc",
               }}
-        />
-      </div>
-    );
-  },
-},
+            />
+          </div>
+        );
+      },
+    },
+
 
 
 

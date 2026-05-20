@@ -1,14 +1,15 @@
-// src/api/watchApi.js
-
 import httpClient from '../config/http/httpClient';
 
-/* ================= GET WATCHES ================= */
-export const getwatchs = async (id, filters = {}) => {
+/* ================= GET READS ================= */
+export const getReads = async (id, filters = {}) => {
   try {
     const params = new URLSearchParams();
 
     if (filters.moderationState) {
-      params.append('moderationState', filters.moderationState);
+      params.append(
+        'moderationState',
+        filters.moderationState
+      );
     }
 
     if (filters.status) {
@@ -17,7 +18,7 @@ export const getwatchs = async (id, filters = {}) => {
 
     const queryString = params.toString();
 
-    const url = `/watch/getdata/${id}${
+    const url = `/read/getdata/${id}${
       queryString ? `?${queryString}` : ''
     }`;
 
@@ -27,16 +28,16 @@ export const getwatchs = async (id, filters = {}) => {
   } catch (error) {
     throw new Error(
       error.response?.data?.message ||
-        'Failed to fetch watch data'
+        'Failed to fetch read data'
     );
   }
 };
 
-/* ================= ADD WATCH ================= */
-export const addWatch = async (formData) => {
+/* ================= ADD READ ================= */
+export const addRead = async (formData) => {
   try {
     const response = await httpClient.post(
-      '/watch/addwatch',
+      '/read/addread',
       formData,
       {
         headers: {
@@ -49,16 +50,16 @@ export const addWatch = async (formData) => {
   } catch (error) {
     throw new Error(
       error.response?.data?.message ||
-        'Failed to add watch'
+        'Failed to add read'
     );
   }
 };
 
-/* ================= UPDATE WATCH ================= */
-export const updateWatch = async (id, formData) => {
+/* ================= UPDATE READ ================= */
+export const updateRead = async (id, formData) => {
   try {
     const response = await httpClient.patch(
-      `/watch/updatewatch/${id}`,
+      `/read/updateread/${id}`,
       formData,
       {
         headers: {
@@ -71,36 +72,35 @@ export const updateWatch = async (id, formData) => {
   } catch (error) {
     throw new Error(
       error.response?.data?.message ||
-        'Failed to update watch'
+        'Failed to update read'
     );
   }
 };
 
-/* ================= DELETE WATCH ================= */
-export const deleteWatch = async (id) => {
+/* ================= DELETE READ ================= */
+export const deleteRead = async (id) => {
   try {
     const response = await httpClient.delete(
-      `/watch/deletewatch/${id}`
+      `/read/deleteread/${id}`
     );
 
     return response.data;
   } catch (error) {
     throw new Error(
       error.response?.data?.message ||
-        'Failed to delete watch'
+        'Failed to delete read'
     );
   }
 };
 
-/* ================= UPDATE WATCH STATUS ================= */
-
-export const updateWatchStatus = async (
+/* ================= UPDATE READ STATUS ================= */
+export const updateReadStatus = async (
   id,
   status
 ) => {
   try {
     const response = await httpClient.patch(
-      '/watch/updateStatus',
+      '/read/updateStatus',
       { id, status }
     );
 
@@ -108,26 +108,23 @@ export const updateWatchStatus = async (
   } catch (error) {
     throw new Error(
       error.response?.data?.message ||
-        'Failed to update listen status'
+        'Failed to update read status'
     );
   }
 };
 
-
-
-
-/* ================= GET WATCH BY ID ================= */
-export const getWatchById = async (id) => {
+/* ================= GET READ BY ID ================= */
+export const getReadById = async (id) => {
   try {
     const response = await httpClient.get(
-      `/watch/getwatchByid/${id}`
+      `/read/getreadByid/${id}`
     );
 
     return response.data;
   } catch (error) {
     throw new Error(
       error.response?.data?.message ||
-        'Failed to fetch watch'
+        'Failed to fetch read'
     );
   }
 };

@@ -9,7 +9,7 @@ import ForgetPwd from "../pages/Authentication/ForgetPassword";
 import Otp from "../pages/Authentication/Otp";
 import ForgotOtp from "../pages/Authentication/ForgotOtp";
 import ResetPwd from "../pages/Authentication/ResetPwd";
-import FixedSectionLayout from '../../src/layout/fixed-layout';
+import FixedSectionLayout from "../../src/layout/fixed-layout";
 /* ================= DASHBOARD ================= */
 import Dashboard from "../pages/Dashboard";
 
@@ -51,7 +51,6 @@ import SocialLinkList from "../pages/SocialLink/SocialLinkList";
 /* ================= CELEBRITY ================= */
 import CelebratyList from "../pages/Celebraty/CelebratyList";
 
-
 /* ================= SECTION ================= */
 import AddSection from "../pages/Section/AddMovie";
 import ListMoviev from "../pages/Section/ListMoviev";
@@ -86,7 +85,13 @@ import AddWatch from "../pages/Watch/AddWatch";
 import UpdateWatch from "../pages/Watch/UpdateWatch";
 import WatchList from "../pages/Watch/WatchList";
 
+import AddRead from "../pages/Read/AddRead";
+import UpdateRead from "../pages/Read/UpdateRead";
+import ReadList from "../pages/Read/ReadList";
 
+import AddListen from "../pages/Listen/AddListen";
+import UpdateListen from "../pages/Listen/UpdateListen";
+import ListenList from "../pages/Listen/ListenList";
 /* ================= PROFILE ================= */
 import Profile from "../pages/profile/Profile";
 import AuthLayout from "../layout/auth-layout";
@@ -98,7 +103,6 @@ import RelatedPersonalitiesList from "../pages/RelatedPersonality/RelatedPersona
 import ProfessionSectionTab from "../pages/Section/ProfessionSectionTab";
 import CelebrityPendingDetails from "../pages/moderation/CelebrityPendingDetails";
 import CelebrityModerationList from "../pages/moderation/CelebrityModerationList";
-
 
 /* ================= ROUTER ================= */
 
@@ -118,109 +122,114 @@ const router = createBrowserRouter([
     ],
   },
 
-// Your router file (App.js or routes.js)
+  // Your router file (App.js or routes.js)
 
+  {
+    path: "/dashboard",
+    element: <DashboardLayout />,
+    children: [
+      { path: "", element: <Dashboard /> },
 
-{
-  path: "/dashboard",
-  element: <DashboardLayout />,
-  children: [
-    { path: "", element: <Dashboard /> },
+      { path: "professional-list", element: <Professionallist /> },
+      { path: "add-professional", element: <AddProfessional /> },
+      { path: "update-professional/:id", element: <UpdateProfessional /> },
 
-    { path: "professional-list", element: <Professionallist /> },
-    { path: "add-professional", element: <AddProfessional /> },
-    { path: "update-professional/:id", element: <UpdateProfessional /> },
+      { path: "language-master", element: <LanguageList /> },
+      { path: "triviaTypes-master", element: <TriviaTypesList /> },
 
-    { path: "language-master", element: <LanguageList /> },
-    { path: "triviaTypes-master", element: <TriviaTypesList /> },
+      { path: "celebrity-list", element: <CelebratyList /> },
+      { path: "add-celebrity", element: <AddCelebrityForm /> },
+      { path: "update-celebrity/:id", element: <UpdateCelebrityForm /> },
 
-    { path: "celebrity-list", element: <CelebratyList /> },
-    { path: "add-celebrity", element: <AddCelebrityForm /> },
-    { path: "update-celebrity/:id", element: <UpdateCelebrityForm /> },
+      { path: "sectiontemplate-list", element: <SectionTemplateList /> },
 
-    { path: "sectiontemplate-list", element: <SectionTemplateList /> },
+      { path: "add-movie/:id", element: <AddSection /> },
+      { path: "update-movie/:id", element: <UpdateMoviev /> },
 
-    { path: "add-movie/:id", element: <AddSection /> },
-    { path: "update-movie/:id", element: <UpdateMoviev /> },
+      // ✅ NEW: Nested Route with FixedSectionLayout
+      {
+        path: "fixed-sections/:id",
+        element: <FixedSectionLayout />,
+        children: [
+          { path: "movies", element: <ListMoviev /> },
+          { path: "timeline", element: <Timelinelist /> },
 
-    // ✅ NEW: Nested Route with FixedSectionLayout
-    {
-      path: "fixed-sections/:id",
-      element: <FixedSectionLayout />,
-      children: [
-        { path: "movies", element: <ListMoviev /> },
-        { path: "timeline", element: <Timelinelist /> },
-       
-        { path: "trivia", element: <TriviaentriesList /> },
-        { path: "series", element: <ListSeries /> },
-        { path: "elections", element: <ListElection /> },
-        { path: "positions", element: <ListPositions /> },
-        { path: "references", element: <ReferencesList /> },
-        { path: "related-personalities", element: <RelatedPersonalitiesList /> },
-                { path: "watch", element: <WatchList /> },
+          { path: "trivia", element: <TriviaentriesList /> },
+          { path: "series", element: <ListSeries /> },
+          { path: "elections", element: <ListElection /> },
+          { path: "positions", element: <ListPositions /> },
+          { path: "references", element: <ReferencesList /> },
+          {
+            path: "related-personalities",
+            element: <RelatedPersonalitiesList />,
+          },
+          { path: "watch", element: <WatchList /> },
+          { path: "read", element: <ReadList /> },
+          { path: "listen", element: <ListenList /> },
+        ],
+      },
 
-      ]
-    },
+      { path: ":id/customs", element: <CustomOptionlist /> },
 
-     { path: ":id/customs", element: <CustomOptionlist /> },
+      { path: "add-timeline/:id", element: <AddTimeline /> },
+      { path: "update-timeline/:id", element: <UpdateTimeline /> },
 
-    { path: "add-timeline/:id", element: <AddTimeline /> },
-    { path: "update-timeline/:id", element: <UpdateTimeline /> },
+      { path: "add-customoption/:id", element: <AddCustomOption /> },
+      { path: "update-customoption/:id", element: <UpdateCustomOption /> },
 
-    { path: "add-customoption/:id", element: <AddCustomOption /> },
-    { path: "update-customoption/:id", element: <UpdateCustomOption /> },
+      { path: "add-triviaentries/:id", element: <CreateTriviaentries /> },
+      { path: "update-triviaentries/:id", element: <UpdateTriviaentries /> },
 
-    { path: "add-triviaentries/:id", element: <CreateTriviaentries /> },
-    { path: "update-triviaentries/:id", element: <UpdateTriviaentries /> },
+      { path: "add-series/:id", element: <AddSeries /> },
+      { path: "update-series/:id", element: <UpdateSeries /> },
 
-    { path: "add-series/:id", element: <AddSeries /> },
-    { path: "update-series/:id", element: <UpdateSeries /> },
+      { path: "add-election/:id", element: <AddElection /> },
+      { path: "update-election/:id", element: <UpdateElection /> },
 
-    { path: "add-election/:id", element: <AddElection /> },
-    { path: "update-election/:id", element: <UpdateElection /> },
+      { path: "add-positions/:id", element: <AddPositions /> },
+      { path: "update-positions/:id", element: <UpdatePositions /> },
 
-    { path: "add-positions/:id", element: <AddPositions /> },
-    { path: "update-positions/:id", element: <UpdatePositions /> },
+      { path: "add-watch/:id", element: <AddWatch /> },
+      { path: "update-watch/:id", element: <UpdateWatch /> },
 
+      { path: "add-read/:id", element: <AddRead /> },
+      { path: "update-read/:id", element: <UpdateRead /> },
 
- { path: "add-watch/:id", element: <AddWatch /> },
-    { path: "update-watch/:id", element: <UpdateWatch /> },
+      { path: "add-listen/:id", element: <AddListen /> },
+      { path: "update-listen/:id", element: <UpdateListen /> },
 
+      { path: "sociallink-list", element: <SocialLinkList /> },
+      { path: "genremaster-list", element: <GenreMasterList /> },
 
+      { path: "section-template-view/:celebId/:id", element: <Template /> },
+      { path: "section-template-list/:celebId", element: <TemplateList /> },
+      {
+        path: "section-template-edit/:celebId/:sectionId/:dataId",
+        element: <TemplateEdit />,
+      },
 
+      { path: "moderation/celebrities", element: <CelebrityModerationList /> },
+      {
+        path: "moderation/celebrity/:id/pending-details",
+        element: <CelebrityPendingDetails />,
+      },
 
-    { path: "sociallink-list", element: <SocialLinkList /> },
-    { path: "genremaster-list", element: <GenreMasterList /> },
+      { path: "role-master", element: <RoleMasterList /> },
+      { path: "privileges/:id", element: <Privileges /> },
 
-    { path: "section-template-view/:celebId/:id", element: <Template /> },
-    { path: "section-template-list/:celebId", element: <TemplateList /> },
-    {
-      path: "section-template-edit/:celebId/:sectionId/:dataId",
-      element: <TemplateEdit />,
-    },
+      { path: "employee-list", element: <UserManagementList /> },
+      { path: "create-employee", element: <CreateEmploye /> },
+      { path: "update-employee/:id", element: <UpdateEmploye /> },
 
-    { path: "moderation/celebrities", element: <CelebrityModerationList /> },
-    { 
-      path: "moderation/celebrity/:id/pending-details", 
-      element: <CelebrityPendingDetails /> 
-    },
+      { path: "sectionmaster-list", element: <SectionMasterList /> },
+      { path: "add-sectionmaster", element: <AddSectionMaster /> },
+      { path: "update-sectionmaster/:id", element: <UpdateSectionMaster /> },
 
-    { path: "role-master", element: <RoleMasterList /> },
-    { path: "privileges/:id", element: <Privileges /> },
+      { path: "section-list", element: <ProfessionSectionTab /> },
 
-    { path: "employee-list", element: <UserManagementList /> },
-    { path: "create-employee", element: <CreateEmploye /> },
-    { path: "update-employee/:id", element: <UpdateEmploye /> },
-
-    { path: "sectionmaster-list", element: <SectionMasterList /> },
-    { path: "add-sectionmaster", element: <AddSectionMaster /> },
-    { path: "update-sectionmaster/:id", element: <UpdateSectionMaster /> },
-
-    { path: "section-list", element: <ProfessionSectionTab /> },
-
-    { path: "user-profile", element: <Profile /> },
-  ],
-}
+      { path: "user-profile", element: <Profile /> },
+    ],
+  },
 ]);
 
 export default router;
