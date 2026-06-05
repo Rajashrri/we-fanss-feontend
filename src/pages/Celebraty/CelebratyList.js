@@ -504,7 +504,6 @@ const [isUpdatingFeatured, setIsUpdatingFeatured] = useState(false);
       const result = await getCelebraties(filters);
       const data = result.data || result.msg || result;
 
-      console.log("API Response:", data);
 
       if (Array.isArray(data)) {
         setCelebrities(data);
@@ -851,8 +850,6 @@ const handleFeaturedChange = async (currentFeatured, id) => {
       accessor: "featured",
       Cell: ({ row }) => {
         const isActive22 = Number(row.original.featured) === 1;
-    console.log("Featured Raw Value:", row.original.featured);
-    console.log("Featured Boolean:", isActive22);
         return (
           <div className="form-check form-switch">
             <input

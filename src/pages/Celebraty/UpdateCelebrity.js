@@ -101,7 +101,6 @@ const UpdateCelebrityForm = () => {
     previewFeaturedImage: "",
     old_featuredimage: "",
     removeOldFeaturedImage: false,
-
     dob: "",
     birthplace: "",
     gender: "",
@@ -139,9 +138,12 @@ const UpdateCelebrityForm = () => {
 
     tags: [],
     seoMetaTitle: "",
+
+    seoAltTagCatImg: "",
+    seoAltTagProImg: "",
     seoMetaDescription: "",
     seoKeywords: [],
-
+    seoSchemacode: "",
     isFeatured: false,
     verificationStatus: "Not Claimed",
     internalNotes: "",
@@ -282,6 +284,11 @@ const UpdateCelebrityForm = () => {
         seoMetaTitle: celebrityData.seoMetadata?.seoMetaTitle || "",
         seoMetaDescription: celebrityData.seoMetadata?.seoMetaDescription || "",
         seoKeywords: celebrityData.seoMetadata?.seoKeywords || [],
+        seoSchemacode: celebrityData.seoMetadata?.seoSchemacode  || "",
+
+        seoAltTagCatImg: celebrityData.seoMetadata?.seoAltTagCatImg || "",
+
+        seoAltTagProImg: celebrityData.seoMetadata?.seoAltTagProImg || "",
 
         isFeatured: celebrityData.adminControls?.isFeatured || false,
         verificationStatus:
@@ -303,15 +310,11 @@ const UpdateCelebrityForm = () => {
     try {
       const response = await getSocialLinksOptions();
 
-      console.log("Full Response:", response);
-
       const data =
         response?.data?.data || // axios response
         response?.data || // direct array
         response?.msg ||
         [];
-
-      console.log("Parsed Data:", data);
 
       const options = Array.isArray(data)
         ? data.map((item) => ({
@@ -569,6 +572,7 @@ const UpdateCelebrityForm = () => {
 
       formDataToSend.append("identityProfile[name]", formData.name.trim());
       formDataToSend.append("identityProfile[slug]", formData.slug.trim());
+      
       if (formData.shortinfo) {
         formDataToSend.append(
           "identityProfile[shortinfo]",
@@ -618,31 +622,20 @@ const UpdateCelebrityForm = () => {
             "lifeStatus[dateOfDeath]",
             formData.dateOfDeath,
           );
-          console.log("✅ Death Date Added:", formData.dateOfDeath);
         }
         if (formData.placeOfDeath && formData.placeOfDeath.trim() !== "") {
           formDataToSend.append(
             "lifeStatus[placeOfDeath]",
             formData.placeOfDeath.trim(),
           );
-          console.log("✅ Place of Death Added:", formData.placeOfDeath);
         }
         if (formData.causeOfDeath && formData.causeOfDeath.trim() !== "") {
           formDataToSend.append(
             "lifeStatus[causeOfDeath]",
             formData.causeOfDeath.trim(),
           );
-          console.log("✅ Cause of Death Added:", formData.causeOfDeath);
         }
       }
-
-      // Debug log to verify death fields
-      console.log("=== Death Related Fields Debug ===");
-      console.log("isAlive:", formData.isAlive);
-      console.log("dateOfDeath:", formData.dateOfDeath);
-      console.log("placeOfDeath:", formData.placeOfDeath);
-      console.log("causeOfDeath:", formData.causeOfDeath);
-      console.log("================================");
 
       if (formData.fatherName) {
         formDataToSend.append(
@@ -765,6 +758,11 @@ const UpdateCelebrityForm = () => {
       }
 
       if (isAdmin) {
+ 
+
+
+
+
         if (formData.tags.length > 0) {
           formDataToSend.append(
             "seoMetadata[tags]",
@@ -777,10 +775,31 @@ const UpdateCelebrityForm = () => {
             formData.seoMetaTitle.trim(),
           );
         }
+
+        if (formData.seoAltTagCatImg) {
+          formDataToSend.append(
+            "seoMetadata[seoAltTagCatImg]",
+            formData.seoAltTagCatImg.trim(),
+          );
+        }
+
+        if (formData.seoAltTagProImg) {
+          formDataToSend.append(
+            "seoMetadata[seoAltTagProImg]",
+            formData.seoAltTagProImg.trim(),
+          );
+        }
         if (formData.seoMetaDescription) {
           formDataToSend.append(
             "seoMetadata[seoMetaDescription]",
             formData.seoMetaDescription.trim(),
+          );
+        }
+
+        if (formData.seoSchemacode) {
+          formDataToSend.append(
+            "seoMetadata[seoSchemacode]",
+            formData.seoSchemacode.trim(),
           );
         }
         if (formData.seoKeywords.length > 0) {
@@ -831,13 +850,6 @@ const UpdateCelebrityForm = () => {
           formDataToSend.append("gallery", file);
         });
       }
-
-      // ✅ Log all FormData entries for debugging
-      console.log("=== FormData Entries ===");
-      for (let pair of formDataToSend.entries()) {
-        console.log(pair[0], ":", pair[1]);
-      }
-      console.log("========================");
 
       const result = await updateCelebraty(id, formDataToSend);
 
@@ -2623,6 +2635,20 @@ const UpdateCelebrityForm = () => {
                       </Col>
 
                       <Col md="12" className="mb-3">
+                        <Label> Meta Title</Label>
+                        <Input
+                          name="seoMetaTitle"
+                          value={formData.seoMetaTitle}
+                          onChange={handleInput}
+                          placeholder="Max 60 characters"
+                          type="text"
+                          maxLength="60"
+                        />
+                        <small className="text-muted">
+                          {formData.seoMetaTitle.length}/60 characters
+                        </small>
+                      </Col>
+                      {/* <Col md="12" className="mb-3">
                         <Label>Tags</Label>
                         <Input
                           type="text"
@@ -2666,24 +2692,10 @@ const UpdateCelebrityForm = () => {
                           </div>
                         )}
                       </Col>
+ */}
 
                       <Col md="12" className="mb-3">
-                        <Label>SEO Meta Title</Label>
-                        <Input
-                          name="seoMetaTitle"
-                          value={formData.seoMetaTitle}
-                          onChange={handleInput}
-                          placeholder="Max 60 characters"
-                          type="text"
-                          maxLength="60"
-                        />
-                        <small className="text-muted">
-                          {formData.seoMetaTitle.length}/60 characters
-                        </small>
-                      </Col>
-
-                      <Col md="12" className="mb-3">
-                        <Label>SEO Meta Description</Label>
+                        <Label> Meta Description</Label>
                         <Input
                           type="textarea"
                           name="seoMetaDescription"
@@ -2699,7 +2711,7 @@ const UpdateCelebrityForm = () => {
                       </Col>
 
                       <Col md="12" className="mb-3">
-                        <Label>SEO Keywords</Label>
+                        <Label>Meta Keywords</Label>
                         <Input
                           type="text"
                           value={keywordInput}
@@ -2743,6 +2755,65 @@ const UpdateCelebrityForm = () => {
                         )}
                       </Col>
 
+                      <Col md="12" className="mb-3">
+                        <Label>Alt Tag Category Image</Label>
+                        <Input
+                          name="seoAltTagCatImg"
+                          value={formData.seoAltTagCatImg}
+                          onChange={handleInput}
+                          placeholder="Max 60 characters"
+                          type="text"
+                          maxLength="60"
+                        />
+                        <small className="text-muted">
+                          {formData.seoAltTagCatImg.length}/60 characters
+                        </small>
+                      </Col>
+
+                      <Col md="12" className="mb-3">
+                        <Label> Alt Tag Profile Image</Label>
+                        <Input
+                          name="seoAltTagProImg"
+                          value={formData.seoAltTagProImg}
+                          onChange={handleInput}
+                          placeholder="Max 60 characters"
+                          type="text"
+                          maxLength="60"
+                        />
+                        <small className="text-muted">
+                          {formData.seoAltTagProImg.length}/60 characters
+                        </small>
+                      </Col>
+     {/* <Col md="12" className="mb-3">
+  <Label>URL</Label>
+  <Input
+    name="slugseo"
+    value={formData.slugseo || ""}
+    onChange={handleInput}
+    placeholder="Enter URL slug"
+    type="text"
+    maxLength="60"
+  />
+  <small className="text-muted">
+    {(formData.slugseo || "").length}/60 characters
+  </small>
+</Col> */}
+
+                      <Col md="12" className="mb-3">
+                        <Label> Schema Code</Label>
+                        <Input
+                          type="textarea"
+                          name="seoSchemacode"
+                          value={formData.seoSchemacode}
+                          onChange={handleInput}
+                          placeholder="Max 160 characters"
+                          rows="3"
+                          maxLength="160"
+                        />
+                        <small className="text-muted">
+                          {formData.seoSchemacode.length}/160 characters
+                        </small>
+                      </Col>
                       <Col md="12">
                         <hr className="my-4" />
                         <h5 className="mb-3">Admin Controls</h5>

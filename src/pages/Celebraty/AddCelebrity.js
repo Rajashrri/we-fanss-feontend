@@ -118,6 +118,9 @@ const AddCelebrityForm = () => {
     seoMetaDescription: "",
     seoKeywords: [],
 
+seoAltTagCatImg: "",
+seoSchemacode: "",
+    seoAltTagProImg: "",
     isFeatured: false,
     verificationStatus: "Not Claimed",
     internalNotes: "",
@@ -645,6 +648,28 @@ const AddCelebrityForm = () => {
             formData.seoMetaTitle.trim(),
           );
         }
+
+  if (formData.seoAltTagCatImg) {
+          formDataToSend.append(
+            "seoMetadata[seoAltTagCatImg]",
+            formData.seoAltTagCatImg.trim(),
+          );
+        }
+
+          if (formData.seoAltTagProImg) {
+          formDataToSend.append(
+            "seoMetadata[seoAltTagProImg]",
+            formData.seoAltTagProImg.trim(),
+          );
+        }
+          if (formData.seoSchemacode) {
+          formDataToSend.append(
+            "seoMetadata[seoSchemacode]",
+            formData.seoSchemacode.trim(),
+          );
+        }
+
+
         if (formData.seoMetaDescription) {
           formDataToSend.append(
             "seoMetadata[seoMetaDescription]",
@@ -2413,7 +2438,7 @@ const AddCelebrityForm = () => {
                         <h4 className="mb-4">SEO & Admin Controls</h4>
                       </Col>
 
-                      <Col md="12" className="mb-3">
+                      {/* <Col md="12" className="mb-3">
                         <Label>Tags</Label>
                         <Input
                           type="text"
@@ -2456,10 +2481,10 @@ const AddCelebrityForm = () => {
                             ))}
                           </div>
                         )}
-                      </Col>
+                      </Col> */}
 
                       <Col md="12" className="mb-3">
-                        <Label>SEO Meta Title</Label>
+                        <Label> Meta Title</Label>
                         <Input
                           name="seoMetaTitle"
                           value={formData.seoMetaTitle}
@@ -2474,7 +2499,7 @@ const AddCelebrityForm = () => {
                       </Col>
 
                       <Col md="12" className="mb-3">
-                        <Label>SEO Meta Description</Label>
+                        <Label> Meta Description</Label>
                         <Input
                           type="textarea"
                           name="seoMetaDescription"
@@ -2533,7 +2558,52 @@ const AddCelebrityForm = () => {
                           </div>
                         )}
                       </Col>
+     <Col md="12" className="mb-3">
+                        <Label>Alt Tag Category Image</Label>
+                        <Input
+                          name="seoAltTagCatImg"
+                          value={formData.seoAltTagCatImg}
+                          onChange={handleInput}
+                          placeholder="Max 60 characters"
+                          type="text"
+                          maxLength="60"
+                        />
+                        <small className="text-muted">
+                          {formData.seoAltTagCatImg.length}/60 characters
+                        </small>
+                      </Col>
 
+                      <Col md="12" className="mb-3">
+                        <Label> Alt Tag Profile Image</Label>
+                        <Input
+                          name="seoAltTagProImg"
+                          value={formData.seoAltTagProImg}
+                          onChange={handleInput}
+                          placeholder="Max 60 characters"
+                          type="text"
+                          maxLength="60"
+                        />
+                        <small className="text-muted">
+                          {formData.seoAltTagProImg.length}/60 characters
+                        </small>
+                      </Col>
+
+                      
+                                            <Col md="12" className="mb-3">
+                                              <Label> Schema Code</Label>
+                                              <Input
+                                                type="textarea"
+                                                name="seoSchemacode"
+                                                value={formData.seoSchemacode}
+                                                onChange={handleInput}
+                                                placeholder="Max 160 characters"
+                                                rows="3"
+                                                maxLength="160"
+                                              />
+                                              <small className="text-muted">
+                                                {formData.seoSchemacode.length}/160 characters
+                                              </small>
+                                            </Col>
                       <Col md="12">
                         <hr className="my-4" />
                         <h5 className="mb-3">Admin Controls</h5>

@@ -38,7 +38,6 @@ hasPermission: (resource, operation) => {
     return false;
   }
 
-  console.log("✅ MATCH FOUND:", permission);
 
   return permission.operations?.[operation] === true;
 },
